@@ -13,6 +13,7 @@ We provide JIT-compiled (with Numba) implementations of common probability distr
 - (Truncated) Exponential
 - Student's t
 - Voigtian
+- Crystal Ball
 - Generalised double-sided Crystal Ball
 - Tsallis-Hagedorn, a model for the minimum bias pT distribution
 - Q-Gaussian
