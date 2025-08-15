@@ -1,9 +1,9 @@
 # numba-stats
 
-![](https://img.shields.io/pypi/v/numba-stats.svg)
+[![PyPI Package latest release](https://img.shields.io/pypi/v/numba-stats.svg)](https://pypi.python.org/pypi/numba-stats)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.13236518.svg)](https://doi.org/10.5281/zenodo.13236518)
 
-We provide JIT-compiled (with numba) implementations of common probability distributions.
+We provide JIT-compiled (with Numba) implementations of common probability distributions.
 
 - Uniform
 - (Truncated) Normal
@@ -13,7 +13,6 @@ We provide JIT-compiled (with numba) implementations of common probability distr
 - (Truncated) Exponential
 - Student's t
 - Voigtian
-- Crystal Ball
 - Generalised double-sided Crystal Ball
 - Tsallis-Hagedorn, a model for the minimum bias pT distribution
 - Q-Gaussian
