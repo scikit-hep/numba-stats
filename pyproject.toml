@@ -49,7 +49,7 @@ where = ["src"]
 minversion = "6.0"
 addopts = "-q -ra --ff --strict-config --strict-markers"
 testpaths = ["tests"]
-log_cli_level = "INFO"
+log_level = "INFO"
 xfail_strict = true
 filterwarnings = ["error"]
 
