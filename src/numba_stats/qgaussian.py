@@ -10,10 +10,14 @@ a change of variables, which is exploited in this implementation.
 https://en.wikipedia.org/wiki/Q-Gaussian_distribution
 """
 
-import numpy as np
+from typing import Optional
+
 import numba as nb
-from . import norm as _norm, t as _t
-from ._util import _jit, _generate_wrappers, _rvs_jit
+import numpy as np
+
+from . import norm as _norm
+from . import t as _t
+from ._util import _generate_wrappers, _jit, _rvs_jit
 
 _doc_par = """
 q : float
@@ -26,8 +30,8 @@ scale : float
 """
 
 
-@nb.njit
-def _df_sigma(q, sigma):
+@nb.njit  # type:ignore[misc]
+def _df_sigma(q: float, sigma: float) -> tuple[float, float]:
     # https://en.wikipedia.org/wiki/Q-Gaussian_distribution
     # relation to Student's t-distribution
 
@@ -42,7 +46,7 @@ def _df_sigma(q, sigma):
 
 
 @_jit(3)
-def _logpdf(x, q, mu, sigma):
+def _logpdf(x: np.ndarray, q: float, mu: float, sigma: float) -> np.ndarray:
     if q < 1 or q > 3:
         raise ValueError("q < 1 or q > 3 are not supported")
 
@@ -55,12 +59,12 @@ def _logpdf(x, q, mu, sigma):
 
 
 @_jit(3)
-def _pdf(x, q, mu, sigma):
+def _pdf(x: np.ndarray, q: float, mu: float, sigma: float) -> np.ndarray:
     return np.exp(_logpdf(x, q, mu, sigma))
 
 
 @_jit(3, cache=False)
-def _cdf(x, q, mu, sigma):
+def _cdf(x: np.ndarray, q: float, mu: float, sigma: float) -> np.ndarray:
     if q < 1 or q > 3:
         raise ValueError("q < 1 or q > 3 are not supported")
 
@@ -73,7 +77,7 @@ def _cdf(x, q, mu, sigma):
 
 
 @_jit(3, cache=False)
-def _ppf(p, q, mu, sigma):
+def _ppf(p: np.ndarray, q: float, mu: float, sigma: float) -> np.ndarray:
     if q < 1 or q > 3:
         raise ValueError("q < 1 or q > 3 are not supported")
 
@@ -86,7 +90,9 @@ def _ppf(p, q, mu, sigma):
 
 
 @_rvs_jit(3, cache=False)
-def _rvs(q, mu, sigma, size, random_state):
+def _rvs(
+    q: float, mu: float, sigma: float, size: int, random_state: Optional[int]
+) -> np.ndarray:
     if q < 1 or q > 3:
         raise ValueError("q < 1 or q > 3 are not supported")
 

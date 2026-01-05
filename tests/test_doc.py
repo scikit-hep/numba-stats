@@ -1,9 +1,11 @@
-import pytest
-import pkgutil
-import numba_stats
-import subprocess as subp
 import importlib
+import pkgutil
+import subprocess as subp
 import sys
+
+import pytest
+
+import numba_stats
 
 all_modules = []
 for _, modname, ispkg in pkgutil.walk_packages(numba_stats.__path__):

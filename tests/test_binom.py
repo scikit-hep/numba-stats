@@ -1,9 +1,9 @@
-import numpy as np
-from numba_stats import binom
-import scipy.stats as sc
-import pytest
 import numba as nb
+import numpy as np
+import pytest
+import scipy.stats as sc
 
+from numba_stats import binom
 
 # NC and KC are all combinations of n and k from 0 to 10
 N = np.arange(10)

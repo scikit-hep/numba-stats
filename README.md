@@ -1,9 +1,9 @@
 # numba-stats
 
-![](https://img.shields.io/pypi/v/numba-stats.svg)
+[![PyPI Package latest release](https://img.shields.io/pypi/v/numba-stats.svg)](https://pypi.python.org/pypi/numba-stats)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.13236518.svg)](https://doi.org/10.5281/zenodo.13236518)
 
-We provide JIT-compiled (with numba) implementations of common probability distributions.
+We provide JIT-compiled (with Numba) implementations of common probability distributions.
 
 - Uniform
 - (Truncated) Normal
@@ -59,9 +59,11 @@ from numba_stats import norm
 import numba as nb
 import numpy as np
 
+
 @nb.njit(parallel=True, fastmath=True)
 def norm_pdf(x, mu, sigma):
-  return norm.pdf(x, mu, sigma)
+    return norm.pdf(x, mu, sigma)
+
 
 # this must be an array of float
 x = np.linspace(-10, 10)
@@ -98,7 +100,7 @@ but
 To keep the implementation simple, the PDFs all operate on 1D array arguments. If you have a higher-dimensional array, you can reshape it, pass it to our function and the shape it back. This is a cheap operation.
 
 ```py
-x = ... # some higher dimensional array
+x = ...  # some higher dimensional array
 # y = norm_pdf(x, 0.0, 1.0) this fails
 y = norm_pdf(x.reshape(-1), 0.0, 1.0).reshape(x.shape)  # OK
 ```
@@ -108,9 +110,9 @@ y = norm_pdf(x.reshape(-1), 0.0, 1.0).reshape(x.shape)  # OK
 To keep the implementation simple and efficient, the PDFs are vectorized only over the first argument `x`, but not over the parameters, unlike the scipy implementation.
 
 ```py
-x = ... # some array
-mu = ... # some array
-sigma = ... # some array
+x = ...  # some array
+mu = ...  # some array
+sigma = ...  # some array
 # this fails both inside a numba compiled function and in the normal Python interpreter
 y = norm.pdf(x, mu, sigma)
 ```
@@ -122,7 +124,7 @@ See the [Rationale](#rationale) for an explanation. If you need this functionali
 def norm_pdf_v(x, mu, sigma):
     result = np.empty_like(x)
     for i, (mui, sigmai) in enumerate(zip(mu, sigma)):
-        result[i] = norm.pdf(x[i: i+1], mui, sigmai)[0]
+        result[i] = norm.pdf(x[i : i + 1], mui, sigmai)[0]
     return result
 ```
 

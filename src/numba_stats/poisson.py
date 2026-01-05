@@ -6,11 +6,14 @@ See Also
 scipy.stats.poisson: Scipy equivalent.
 """
 
-import numpy as np
-from ._special import gammaincc as _gammaincc
 from math import lgamma as _lgamma
-from ._util import _jit, _generate_wrappers, _prange, _seed
+from typing import Optional
+
 import numba as nb
+import numpy as np
+
+from ._special import gammaincc as _gammaincc
+from ._util import _generate_wrappers, _jit, _jit_custom, _prange, _seed
 
 _doc_par = """
 mu : float
@@ -19,7 +22,7 @@ mu : float
 
 
 @_jit(1)
-def _logpmf(k, mu):
+def _logpmf(k: np.ndarray, mu: float) -> np.ndarray:
     T = type(mu)
     r = np.empty(len(k), T)
     for i in _prange(len(r)):
@@ -31,12 +34,12 @@ def _logpmf(k, mu):
 
 
 @_jit(1)
-def _pmf(k, mu):
+def _pmf(k: np.ndarray, mu: float) -> np.ndarray:
     return np.exp(_logpmf(k, mu))
 
 
 @_jit(1, cache=False)
-def _cdf(k, mu):
+def _cdf(k: np.ndarray, mu: float) -> np.ndarray:
     T = type(mu)
     r = np.empty(len(k), T)
     for i in _prange(len(r)):
@@ -44,13 +47,8 @@ def _cdf(k, mu):
     return r
 
 
-@nb.njit(
-    nb.int64[:](nb.float32, nb.uint64, nb.optional(nb.uint64)),
-    cache=True,
-    inline="always",
-    error_model="numpy",
-)
-def _rvs(mu, size, random_state):
+@_jit_custom(nb.int64[:](nb.float32, nb.uint64, nb.optional(nb.uint64)))
+def _rvs(mu: float, size: int, random_state: Optional[int]) -> np.ndarray:
     _seed(random_state)
     return np.random.poisson(mu, size)
 

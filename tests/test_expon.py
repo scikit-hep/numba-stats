@@ -1,5 +1,6 @@
-import scipy.stats as sc
 import numpy as np
+import scipy.stats as sc
+
 from numba_stats import expon
 
 

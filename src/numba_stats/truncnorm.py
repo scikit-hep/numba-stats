@@ -6,9 +6,12 @@ See Also
 scipy.stats.truncnorm: Scipy equivalent.
 """
 
+from typing import Optional
+
 import numpy as np
+
 from . import norm as _norm
-from ._util import _jit, _generate_wrappers, _prange, _seed, _rvs_jit
+from ._util import _generate_wrappers, _jit, _prange, _rvs_jit, _seed
 
 _doc_par = """
 xmin : float
@@ -23,7 +26,9 @@ scale : float
 
 
 @_jit(4)
-def _logpdf(x, xmin, xmax, loc, scale):
+def _logpdf(
+    x: np.ndarray, xmin: float, xmax: float, loc: float, scale: float
+) -> np.ndarray:
     T = type(scale)
     scale2 = T(1) / scale
     z = (x - loc) * scale2
@@ -39,12 +44,16 @@ def _logpdf(x, xmin, xmax, loc, scale):
 
 
 @_jit(4)
-def _pdf(x, xmin, xmax, loc, scale):
+def _pdf(
+    x: np.ndarray, xmin: float, xmax: float, loc: float, scale: float
+) -> np.ndarray:
     return np.exp(_logpdf(x, xmin, xmax, loc, scale))
 
 
 @_jit(4)
-def _cdf(x, xmin, xmax, loc, scale):
+def _cdf(
+    x: np.ndarray, xmin: float, xmax: float, loc: float, scale: float
+) -> np.ndarray:
     scale = type(scale)(1) / scale
     r = (x - loc) * scale
     zmin = (xmin - loc) * scale
@@ -63,7 +72,9 @@ def _cdf(x, xmin, xmax, loc, scale):
 
 
 @_jit(4, cache=False)
-def _ppf(p, xmin, xmax, loc, scale):
+def _ppf(
+    p: np.ndarray, xmin: float, xmax: float, loc: float, scale: float
+) -> np.ndarray:
     scale2 = type(scale)(1) / scale
     zmin = (xmin - loc) * scale2
     zmax = (xmax - loc) * scale2
@@ -76,7 +87,14 @@ def _ppf(p, xmin, xmax, loc, scale):
 
 
 @_rvs_jit(4, cache=False)
-def _rvs(xmin, xmax, loc, scale, size, random_state):
+def _rvs(
+    xmin: float,
+    xmax: float,
+    loc: float,
+    scale: float,
+    size: int,
+    random_state: Optional[int],
+) -> np.ndarray:
     _seed(random_state)
     p = np.random.uniform(0, 1, size)
     return _ppf(p, xmin, xmax, loc, scale)

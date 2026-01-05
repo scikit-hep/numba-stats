@@ -1,10 +1,11 @@
-from numba_stats import bernstein
-from scipy.interpolate import BPoly
-import pytest
-import numpy as np
-from scipy.integrate import quad
 import numba as nb
+import numpy as np
+import pytest
 from numpy.testing import assert_allclose
+from scipy.integrate import quad
+from scipy.interpolate import BPoly
+
+from numba_stats import bernstein
 
 
 def scipy_density(x, beta, xmin, xmax):

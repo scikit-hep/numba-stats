@@ -1,9 +1,10 @@
-from numba_stats import crystalball as cb
 import numpy as np
 import pytest
+from numpy.testing import assert_allclose
 from scipy import stats as sc
 from scipy.integrate import quad
-from numpy.testing import assert_allclose
+
+from numba_stats import crystalball as cb
 
 
 @pytest.mark.parametrize("beta", (5, 1, 0.1))

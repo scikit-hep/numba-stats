@@ -13,9 +13,10 @@ See Also
 scipy.special.voigt_profile: Equvialent in Scipy.
 """
 
-from ._special import voigt_profile as _voigt
-from ._util import _jit, _generate_wrappers, _prange
 import numpy as np
+
+from ._special import voigt_profile as _voigt
+from ._util import _generate_wrappers, _jit, _prange
 
 _doc_par = """
 gamma : float
@@ -28,7 +29,7 @@ scale : float
 
 
 @_jit(3, cache=False)
-def _pdf(x, gamma, loc, scale):
+def _pdf(x: np.ndarray, gamma: float, loc: float, scale: float) -> np.ndarray:
     r = np.empty_like(x)
     for i in _prange(len(x)):
         r[i] = _voigt(x[i] - loc, scale, gamma)

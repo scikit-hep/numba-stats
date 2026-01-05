@@ -1,8 +1,9 @@
-from numba_stats import cmsshape, expon
-from scipy.integrate import quad
+import numpy as np
 import pytest
 from numpy.testing import assert_allclose
-import numpy as np
+from scipy.integrate import quad
+
+from numba_stats import cmsshape, expon
 
 
 def test_pdf_1():

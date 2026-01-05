@@ -1,8 +1,9 @@
-from numba_stats import _special as sp
-from scipy import special as sp_ref
 import numba as nb
-import pytest
 import numpy as np
+import pytest
+from scipy import special as sp_ref
+
+from numba_stats import _special as sp
 
 
 @pytest.mark.parametrize("a", [1, 2, 3])

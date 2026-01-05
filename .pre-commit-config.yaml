@@ -38,15 +38,44 @@ repos:
   - id: pyupgrade
     args: ["--py310-plus"]
 
-# Ruff linter, replacement for flake8, pydocstyle, isort
+# Ruff linter and formatter
 - repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: 'v0.12.4'
+  rev: 'v0.12.5'
   hooks:
     - id: ruff
       args: [--fix, --show-fixes]
+    - id: ruff-format
 
-# Python formatting
-- repo: https://github.com/psf/black-pre-commit-mirror
-  rev: 25.1.0
+# Python type checking
+- repo: https://github.com/pre-commit/mirrors-mypy
+  rev: 'v1.15.0'
   hooks:
-  - id: black
+  - id: mypy
+    additional_dependencies: [numpy, pytest]
+    files: "src"
+
+- repo: https://github.com/adamchainz/blacken-docs
+  rev: "1.19.1"
+  hooks:
+  - id: blacken-docs
+    additional_dependencies:
+    - black==22.12.0
+
+- repo: https://github.com/codespell-project/codespell
+  rev: v2.4.1
+  hooks:
+  - id: codespell
+    additional_dependencies:
+      - tomli
+
+- repo: https://github.com/hukkin/mdformat
+  rev: 0.7.22  # Use the ref you want to point at
+  hooks:
+  - id: mdformat
+    # Optionally add plugins
+    additional_dependencies:
+    - mdformat-gfm
+    - mdformat-black
+
+ci:
+  autoupdate_commit_msg: 'chore: update pre-commit hooks'

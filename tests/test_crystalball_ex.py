@@ -1,9 +1,10 @@
-from numba_stats import crystalball_ex as cb
 import numpy as np
 import pytest
-from scipy import stats as sc
 from numpy.testing import assert_allclose
+from scipy import stats as sc
 from scipy.integrate import quad
+
+from numba_stats import crystalball_ex as cb
 
 # We verify the pdf of the generalized Crystal Ball
 # piecewise using the normal scipy Crystal Ball.

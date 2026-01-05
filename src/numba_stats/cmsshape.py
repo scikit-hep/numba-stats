@@ -18,7 +18,8 @@ distribution.
 """
 
 import numpy as np
-from ._util import _jit, _generate_wrappers, _erf_inplace, _erfc_inplace
+
+from ._util import _erf_inplace, _erfc_inplace, _generate_wrappers, _jit
 
 _doc_par = """
 beta : float
@@ -31,7 +32,7 @@ loc: float
 
 
 @_jit(3)
-def _logpdf(x, beta, gamma, loc):
+def _logpdf(x: np.ndarray, beta: float, gamma: float, loc: float) -> np.ndarray:
     T = type(beta)
     two = T(2)
     half = T(0.5)
@@ -40,16 +41,16 @@ def _logpdf(x, beta, gamma, loc):
     u = (x - loc) * gamma
     T = type(beta)
     log_t = (half * gamma / beta) ** two
-    return np.log(v) - u + np.log(half * gamma) - log_t
+    return np.log(v) - u + np.log(half * gamma) - log_t  # type:ignore[no-any-return]
 
 
 @_jit(3)
-def _pdf(x, beta, gamma, loc):
+def _pdf(x: np.ndarray, beta: float, gamma: float, loc: float) -> np.ndarray:
     return np.exp(_logpdf(x, beta, gamma, loc))
 
 
 @_jit(3)
-def _cdf(x, beta, gamma, loc):
+def _cdf(x: np.ndarray, beta: float, gamma: float, loc: float) -> np.ndarray:
     T = type(beta)
     y = x - loc
     two = T(2)
@@ -59,7 +60,7 @@ def _cdf(x, beta, gamma, loc):
     t2 = np.exp(-((gamma / (two * beta)) ** two) - gamma * y)
     t3 = -beta * y
     _erfc_inplace(t3)
-    return half * (t1 - t2 * t3) + half
+    return half * (t1 - t2 * t3) + half  # type:ignore[no-any-return]
 
 
 _generate_wrappers(globals())

@@ -1,22 +1,40 @@
 """Utilities for code and docs generation to reduce boilerplate code."""
 
 import math
+import os
+from typing import Any, Callable, Optional
+
 import numba as nb
 import numpy as np
-from numba.types import Array
+from numba import prange as _prange  # noqa
 from numba.core.errors import TypingError
 from numba.extending import overload
-from numba import prange as _prange  # noqa
-import os
+from numba.types import Array
 
 _Floats = (nb.float32, nb.float64)
 
+__all__ = [
+    "_prange",
+    "_readonly_carray",
+    "_jit_custom",
+    "_jit_pointwise",
+    "_jit",
+    "_rvs_jit",
+    "_seed",
+    "_generate_wrappers",
+    "_trans",
+]
 
-def _readonly_carray(T):
+DistributionFunction = Callable[..., np.ndarray]
+
+
+def _readonly_carray(T: type) -> Array:
     return Array(T, 1, "A", readonly=True)
 
 
-def _jit_custom(signatures, cache=True):
+def _jit_custom(
+    signatures: Any, cache: bool = True
+) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """
     Wrap numba.njit to reduce boilerplate code.
 
@@ -25,10 +43,42 @@ def _jit_custom(signatures, cache=True):
     pass specific options consistently: error_model='numpy' and inline='always'. The
     latter is important to profit from auto-parallelization of surrounding code.
     """
-    return nb.njit(signatures, cache=cache, inline="always", error_model="numpy")
+    return nb.njit(signatures, cache=cache, inline="always", error_model="numpy")  # type:ignore[no-any-return]
 
 
-def _jit(npar, *, narg=1, cache=True):
+def _jit_pointwise(
+    npar: int, *, cache: bool = True
+) -> Callable[[Callable[..., float]], Callable[..., float]]:
+    """
+    Wrap numba.njit to reduce boilerplate code.
+
+    We want to build jitted functions with explicit signatures to restrict the argument
+    types which are used in the implemnetation to float32 or float64. We also want to
+    pass specific options consistently: error_model='numpy' and inline='always'. The
+    latter is important to profit from auto-parallelization of surrounding code.
+
+    This decorator builds signatures with "narg" array arguments followed by "npar"
+    scalar arguments, and it does that for the types float32 or float64.
+
+    Parameters
+    ----------
+    npar : int
+        Number of scalar arguments.
+    cache : bool, optional (default: True)
+        Whether to cache the compilation. We must turn this off if the function uses a
+        function pointer from Scipy.
+    """
+    assert npar >= 0
+    signatures = []
+    for T in (nb.float32, nb.float64):
+        sig = T(*([T] * npar))
+        signatures.append(sig)
+    return _jit_custom(signatures, cache=cache)
+
+
+def _jit(
+    npar: int, *, narg: int = 1, cache: bool = True
+) -> Callable[[DistributionFunction], DistributionFunction]:
     """
     Wrap numba.njit to reduce boilerplate code.
 
@@ -51,20 +101,19 @@ def _jit(npar, *, narg=1, cache=True):
         function pointer from Scipy.
     """
     assert npar >= 0
-    assert narg >= 0
+    assert narg >= 1
     signatures = []
     for T in (nb.float32, nb.float64):
-        if narg == 0:
-            sig = T(*([T] * npar))
-        else:
-            sig = T[:](
-                *[_readonly_carray(T) for _ in range(narg)], *[T for _ in range(npar)]
-            )
+        sig = T[:](
+            *[_readonly_carray(T) for _ in range(narg)], *[T for _ in range(npar)]
+        )
         signatures.append(sig)
     return _jit_custom(signatures, cache=cache)
 
 
-def _rvs_jit(arg, cache=True):
+def _rvs_jit(
+    arg: int, cache: bool = True
+) -> Callable[[DistributionFunction], DistributionFunction]:
     signatures = []
     T = nb.float64  # nb.float32 cannot be supported
     # extra args at the end are for size and random_state
@@ -73,16 +122,16 @@ def _rvs_jit(arg, cache=True):
     return _jit_custom(signatures, cache=cache)
 
 
-@nb.njit(cache=True)
-def _seed(seed):
+@nb.njit(cache=True)  # type:ignore[misc]
+def _seed(seed: Optional[int]) -> None:
     if seed is None:
         with nb.objmode(seed="optional(uint8)"):
             seed = np.frombuffer(os.urandom(8), dtype=np.uint64)[0]
     np.random.seed(seed)
 
 
-def _wrap(fn):
-    def outer(first, *rest):
+def _wrap(fn: Callable[..., np.ndarray]) -> Callable[..., np.ndarray]:
+    def outer(first: np.ndarray, *rest: Any) -> np.ndarray:
         shape = np.shape(first)
         first = np.array(first).flatten()
         if first.dtype.kind != "f":
@@ -93,34 +142,34 @@ def _wrap(fn):
 
 
 @_jit(2)
-def _trans(x, loc, scale):
+def _trans(x: np.ndarray, loc: float, scale: float) -> np.ndarray:
     inv_scale = type(scale)(1) / scale
     return (x - loc) * inv_scale
 
 
-@nb.njit(cache=True, inline="always", error_model="numpy")
-def _erf_inplace(x):
+@nb.njit(cache=True, inline="always", error_model="numpy")  # type:ignore[misc]
+def _erf_inplace(x: np.ndarray) -> None:
     for i in _prange(len(x)):
         x[i] = math.erf(x[i])
 
 
-@nb.njit(cache=True, inline="always", error_model="numpy")
-def _erfc_inplace(x):
+@nb.njit(cache=True, inline="always", error_model="numpy")  # type:ignore[misc]
+def _erfc_inplace(x: np.ndarray) -> None:
     for i in _prange(len(x)):
         x[i] = math.erfc(x[i])
 
 
-def _type_check(first, *rest):
+def _type_check(first: Array, *rest: Any) -> None:
     if not (isinstance(first, Array) and first.dtype in _Floats):
         raise TypingError("first argument must be an array of floating point type")
 
     T = type(first.dtype)
     for i, tp in enumerate(rest):
         if not isinstance(tp, T):
-            raise TypingError(f"argument {i+1} must be of type {tp}")
+            raise TypingError(f"argument {i + 1} must be of type {tp}")
 
 
-def _generate_wrappers(d):
+def _generate_wrappers(d: dict[str, Any]) -> None:
     import inspect
 
     if "_wrap" not in d:
@@ -146,8 +195,11 @@ def _generate_wrappers(d):
         if impl not in d:
             continue
         fn = d[impl]
-        args = inspect.signature(fn).parameters
-        args = ", ".join([f"{x}" for x in args])
+        parameters = inspect.signature(fn).parameters
+        args = ", ".join(parameters)
+        args_with_types = ", ".join(
+            str(x).replace("numpy", "np") for x in parameters.values()
+        )
         doc_title = {
             "density": "Return density.",
             "integral": "Return integrated density.",
@@ -182,20 +234,20 @@ random_state : int or None
 
         if fname == "rvs":
             code = f"""
-def {fname}({args}):
+def {fname}({args_with_types}):
     return {impl}({args})
 
 @_overload({fname}, inline="always")
-def _ol_{fname}({args}):
+def _ol_{fname}({args_with_types}):
     return {impl}.__wrapped__
 """
         else:
             code = f"""
-def {fname}({args}):
+def {fname}({args_with_types}):
     return _wrap({impl})({args})
 
 @_overload({fname}, inline="always")
-def _ol_{fname}({args}):
+def _ol_{fname}({args_with_types}):
     _type_check({args})
     return {impl}.__wrapped__
 """

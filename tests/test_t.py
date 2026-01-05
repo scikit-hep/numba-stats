@@ -1,7 +1,8 @@
-import scipy.stats as sc
 import numpy as np
-from numba_stats import t
 import pytest
+import scipy.stats as sc
+
+from numba_stats import t
 
 
 @pytest.mark.parametrize("df", (1, 1.5, 2, 3, 4, 5.5, 10))

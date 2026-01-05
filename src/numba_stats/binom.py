@@ -6,11 +6,16 @@ See Also
 scipy.stats.binom: Scipy equivalent.
 """
 
-import numpy as np
-from ._special import xlogy as _xlogy, xlog1py as _xlog1py, betainc as _betainc
 from math import lgamma as _lgamma
-from ._util import _jit, _generate_wrappers, _prange, _seed
+from typing import Optional
+
 import numba as nb
+import numpy as np
+
+from ._special import betainc as _betainc
+from ._special import xlog1py as _xlog1py
+from ._special import xlogy as _xlogy
+from ._util import _generate_wrappers, _jit, _prange, _seed
 
 _doc_par = """
 k : int
@@ -23,7 +28,7 @@ p : float
 
 
 @_jit(1, narg=2, cache=False)
-def _logpmf(k, n, p):
+def _logpmf(k: np.ndarray, n: np.ndarray, p: float) -> np.ndarray:
     T = type(p)
     r = np.empty(len(k), T)
     one = T(1)
@@ -36,12 +41,12 @@ def _logpmf(k, n, p):
 
 
 @_jit(1, narg=2, cache=False)
-def _pmf(k, n, p):
+def _pmf(k: np.ndarray, n: np.ndarray, p: float) -> np.ndarray:
     return np.exp(_logpmf(k, n, p))
 
 
 @_jit(1, narg=2, cache=False)
-def _cdf(k, n, p):
+def _cdf(k: np.ndarray, n: np.ndarray, p: float) -> np.ndarray:
     T = type(p)
     r = np.empty(len(k), T)
     one = T(1)
@@ -57,13 +62,13 @@ def _cdf(k, n, p):
     return r
 
 
-@nb.njit(
+@nb.njit(  # type:ignore[misc]
     nb.int64[:](nb.uint64, nb.float32, nb.uint64, nb.optional(nb.uint64)),
     cache=True,
     inline="always",
     error_model="numpy",
 )
-def _rvs(n, p, size, random_state):
+def _rvs(n: int, p: float, size: int, random_state: Optional[int]) -> np.ndarray:
     _seed(random_state)
     return np.random.binomial(n, p, size=size)
 

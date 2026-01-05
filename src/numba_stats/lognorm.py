@@ -6,9 +6,12 @@ See Also
 scipy.stats.lognorm: Scipy equivalent.
 """
 
+from typing import Optional
+
 import numpy as np
+
 from . import norm as _norm
-from ._util import _jit, _trans, _generate_wrappers, _prange, _seed, _rvs_jit
+from ._util import _generate_wrappers, _jit, _prange, _rvs_jit, _seed, _trans
 
 _doc_par = """
 s : float
@@ -21,7 +24,7 @@ scale : float
 
 
 @_jit(3)
-def _logpdf(x, s, loc, scale):
+def _logpdf(x: np.ndarray, s: float, loc: float, scale: float) -> np.ndarray:
     r = _trans(x, loc, scale)
     for i in _prange(len(r)):
         if r[i] > 0:
@@ -34,12 +37,12 @@ def _logpdf(x, s, loc, scale):
 
 
 @_jit(3)
-def _pdf(x, s, loc, scale):
+def _pdf(x: np.ndarray, s: float, loc: float, scale: float) -> np.ndarray:
     return np.exp(_logpdf(x, s, loc, scale))
 
 
 @_jit(3)
-def _cdf(x, s, loc, scale):
+def _cdf(x: np.ndarray, s: float, loc: float, scale: float) -> np.ndarray:
     r = _trans(x, loc, scale)
     for i in _prange(len(r)):
         if r[i] <= 0:
@@ -51,7 +54,7 @@ def _cdf(x, s, loc, scale):
 
 
 @_jit(3, cache=False)  # no cache because of norm._ppf
-def _ppf(p, s, loc, scale):
+def _ppf(p: np.ndarray, s: float, loc: float, scale: float) -> np.ndarray:
     r = np.empty_like(p)
     for i in _prange(len(p)):
         r[i] = np.exp(s * _norm._ppf1(p[i]))
@@ -59,7 +62,9 @@ def _ppf(p, s, loc, scale):
 
 
 @_rvs_jit(3, cache=False)
-def _rvs(s, loc, scale, size, random_state):
+def _rvs(
+    s: float, loc: float, scale: float, size: int, random_state: Optional[int]
+) -> np.ndarray:
     _seed(random_state)
     return loc + scale * np.random.lognormal(0, s, size)
 

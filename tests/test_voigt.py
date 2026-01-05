@@ -1,6 +1,7 @@
-from scipy.special import voigt_profile
-from numba_stats import voigt
 import numpy as np
+from scipy.special import voigt_profile
+
+from numba_stats import voigt
 
 
 def test_pdf():

@@ -1,8 +1,9 @@
-import numpy as np
-from numba_stats import poisson
-import scipy.stats as sc
-import pytest
 import numba as nb
+import numpy as np
+import pytest
+import scipy.stats as sc
+
+from numba_stats import poisson
 
 
 @pytest.mark.parametrize("mu", np.linspace(0, 3, 5))

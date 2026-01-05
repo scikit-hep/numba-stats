@@ -1,9 +1,10 @@
-import scipy.stats as sc
-import numpy as np
 import numba as nb
-from numba_stats import norm
-from numpy.testing import assert_allclose
+import numpy as np
 import pytest
+import scipy.stats as sc
+from numpy.testing import assert_allclose
+
+from numba_stats import norm
 
 
 def test_pdf_one():

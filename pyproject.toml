@@ -48,19 +48,22 @@ where = ["src"]
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "-q -ra --ff"
+addopts = "-q -ra --ff --strict-config --strict-markers"
 testpaths = ["tests"]
-
-[tool.ruff]
-src = ["src"]
+log_level = "INFO"
+xfail_strict = true
+filterwarnings = ["error"]
 
 [tool.ruff.lint]
 select = [
     "E",
     "F", # flake8
     "D", # pydocstyle
+    "B", # flake8-bugbear
+    "I", # isort
+    "UP", # pyupgrade
 ]
-extend-ignore = [
+ignore = [
     "D212", # multi-line-summary-first-line
 ]
 unfixable = [
@@ -74,5 +77,15 @@ unfixable = [
 "bench/*.py" = ["D"]
 "docs/*.py" = ["D"]
 
-[tool.ruff.pydocstyle]
+[tool.ruff.lint.pydocstyle]
 convention = "numpy"
+
+[tool.mypy]
+strict = true
+warn_unreachable = true
+ignore_missing_imports = true
+allow_redefinition = true
+pretty = true
+files = ["src"]
+no_implicit_optional = false
+enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]

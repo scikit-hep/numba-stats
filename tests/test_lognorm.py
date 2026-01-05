@@ -1,8 +1,9 @@
-import scipy.stats as sc
-import numpy as np
 import numba as nb
-from numba_stats import lognorm
+import numpy as np
+import scipy.stats as sc
 from numpy.testing import assert_allclose
+
+from numba_stats import lognorm
 
 
 def test_pdf():

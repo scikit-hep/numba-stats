@@ -1,6 +1,7 @@
 import numpy as np
-from numba_stats import truncexpon, expon
 from scipy.stats import kstest
+
+from numba_stats import expon, truncexpon
 
 
 def test_pdf():

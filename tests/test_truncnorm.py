@@ -1,8 +1,9 @@
 import numpy as np
-from numba_stats import truncnorm
+import pytest
 import scipy.stats as sc
 from scipy.integrate import quad
-import pytest
+
+from numba_stats import truncnorm
 
 
 @pytest.mark.parametrize("mu", (0, -1, 1))

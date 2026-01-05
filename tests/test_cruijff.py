@@ -1,7 +1,8 @@
-from numba_stats import cruijff
 import numpy as np
-from scipy.stats import norm
 from numpy.testing import assert_allclose
+from scipy.stats import norm
+
+from numba_stats import cruijff
 
 
 def test_density_1():

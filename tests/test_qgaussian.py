@@ -1,8 +1,9 @@
-from numba_stats import qgaussian, t, norm
 import numpy as np
 import pytest
-from scipy.integrate import quad
 from scipy import stats as sc
+from scipy.integrate import quad
+
+from numba_stats import norm, qgaussian, t
 
 
 def q_sigma(nu, sigma):

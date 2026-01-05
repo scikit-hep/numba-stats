@@ -1,8 +1,9 @@
-import scipy.stats
-import numpy as np
-import numba as nb
-import pytest
 import importlib
+
+import numba as nb
+import numpy as np
+import pytest
+import scipy.stats
 
 N = (10, 100, 1000, 10_000, 100_000)
 
@@ -88,7 +89,7 @@ def test_speed(benchmark, lib, kind, n):
                     return orig(x, a, b, c, d)
 
             else:
-                assert False
+                raise AssertionError
 
     # warm-up JIT
     method(x, *args)
@@ -131,8 +132,9 @@ def test_speed_voigt_pdf(benchmark, lib, n):
 @pytest.mark.parametrize("n", N)
 @pytest.mark.parametrize("lib", ("scipy", "ours", "ours:parallel,fastmath"))
 def test_speed_bernstein_density(benchmark, lib, n):
-    from numba_stats import bernstein
     from scipy.interpolate import BPoly
+
+    from numba_stats import bernstein
 
     x = np.linspace(0, 1, n)
     rng = np.random.default_rng(1)

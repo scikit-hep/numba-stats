@@ -1,7 +1,8 @@
-from numba_stats import uniform
 import numpy as np
 import scipy.stats as sc
 from numpy.testing import assert_allclose
+
+from numba_stats import uniform
 
 
 def test_pdf():

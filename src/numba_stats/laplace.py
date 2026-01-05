@@ -6,8 +6,19 @@ See Also
 scipy.stats.laplace: Scipy equivalent.
 """
 
+from typing import Optional
+
 import numpy as np
-from ._util import _jit, _trans, _generate_wrappers, _prange, _rvs_jit, _seed
+
+from ._util import (
+    _generate_wrappers,
+    _jit,
+    _jit_pointwise,
+    _prange,
+    _rvs_jit,
+    _seed,
+    _trans,
+)
 
 _doc_par = """
 loc : float
@@ -17,18 +28,18 @@ scale : float
 """
 
 
-@_jit(1, narg=0)
-def _cdf1(z):
-    return 1.0 - 0.5 * np.exp(-z) if z > 0 else 0.5 * np.exp(z)
+@_jit_pointwise(1)
+def _cdf1(z: float) -> float:
+    return 1.0 - 0.5 * np.exp(-z) if z > 0 else 0.5 * np.exp(z)  # type:ignore[no-any-return]
 
 
-@_jit(1, narg=0)
-def _ppf1(p):
-    return -np.log(2 * (1 - p)) if p > 0.5 else np.log(2 * p)
+@_jit_pointwise(1)
+def _ppf1(p: float) -> float:
+    return -np.log(2 * (1 - p)) if p > 0.5 else np.log(2 * p)  # type:ignore[no-any-return]
 
 
 @_jit(2)
-def _logpdf(x, loc, scale):
+def _logpdf(x: np.ndarray, loc: float, scale: float) -> np.ndarray:
     z = _trans(x, loc, scale)
     r = np.empty_like(z)
     for i in _prange(len(r)):
@@ -37,12 +48,12 @@ def _logpdf(x, loc, scale):
 
 
 @_jit(2)
-def _pdf(x, loc, scale):
+def _pdf(x: np.ndarray, loc: float, scale: float) -> np.ndarray:
     return np.exp(_logpdf(x, loc, scale))
 
 
 @_jit(2)
-def _cdf(x, loc, scale):
+def _cdf(x: np.ndarray, loc: float, scale: float) -> np.ndarray:
     z = _trans(x, loc, scale)
     for i in _prange(len(z)):
         z[i] = _cdf1(z[i])
@@ -50,7 +61,7 @@ def _cdf(x, loc, scale):
 
 
 @_jit(2)
-def _ppf(p, loc, scale):
+def _ppf(p: np.ndarray, loc: float, scale: float) -> np.ndarray:
     z = np.empty_like(p)
     for i in _prange(len(z)):
         z[i] = _ppf1(p[i])
@@ -58,7 +69,9 @@ def _ppf(p, loc, scale):
 
 
 @_rvs_jit(2)
-def _rvs(loc, scale, size, random_state):
+def _rvs(
+    loc: float, scale: float, size: int, random_state: Optional[int]
+) -> np.ndarray:
     _seed(random_state)
     return np.random.laplace(loc, scale, size)
 

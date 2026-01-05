@@ -4,8 +4,9 @@ Noxfile to orchestrate tests and computing coverage.
 Pass extra arguments to pytest after --
 """
 
-import nox
 import sys
+
+import nox
 
 sys.path.append(".")
 import python_releases
@@ -53,7 +54,7 @@ def cov(session: nox.Session) -> None:
     """Run covage and place in 'htmlcov' directory."""
     import warnings
 
-    warnings.warn("JIT-compiled code lines are not counted.")
+    warnings.warn("JIT-compiled code lines are not counted.", stacklevel=2)
 
     session.install("-e.[test]")
     session.run("coverage", "run", "-m", "pytest", env=ENV)

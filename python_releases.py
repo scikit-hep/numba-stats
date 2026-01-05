@@ -1,9 +1,10 @@
 """Get the latest Python release which is online."""
 
-import urllib.request
-import re
-from html.parser import HTMLParser
 import gzip
+import re
+import urllib.request
+from html.parser import HTMLParser
+
 from packaging.version import Version
 
 

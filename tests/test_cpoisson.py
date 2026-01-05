@@ -1,6 +1,7 @@
-from numba_stats import poisson, cpoisson
 import numpy as np
 import pytest
+
+from numba_stats import cpoisson, poisson
 
 
 @pytest.mark.parametrize("mu", (0.1, 0.5, 1.0, 2.0))
