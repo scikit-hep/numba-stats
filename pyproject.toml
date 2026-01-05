@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "numba-stats"
 dynamic = ["version"]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = ["numba>=0.53", "numpy>=1.20", "scipy>=1.5"]
 authors = [{ name = "Hans Dembinski", email = "hans.dembinski@gmail.com" }]
 readme = "README.md"
