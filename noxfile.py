@@ -48,8 +48,7 @@ def maxtest(session: nox.Session) -> None:
     session.run("pytest", *session.posargs, env=ENV)
 
 
-# Python-3.12 provides coverage info faster
-@nox.session(python="3.12", reuse_venv=True)
+@nox.session(python="3.13", reuse_venv=True)
 def cov(session: nox.Session) -> None:
     """Run covage and place in 'htmlcov' directory."""
     import warnings

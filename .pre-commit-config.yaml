@@ -31,6 +31,13 @@ repos:
   - id: trailing-whitespace
     exclude: .*\.svg
 
+# Upgrade syntax for newer Python versions
+- repo: https://github.com/asottile/pyupgrade
+  rev: v3.21.2
+  hooks:
+  - id: pyupgrade
+    args: ["--py310-plus"]
+
 # Ruff linter, replacement for flake8, pydocstyle, isort
 - repo: https://github.com/astral-sh/ruff-pre-commit
   rev: 'v0.12.4'
