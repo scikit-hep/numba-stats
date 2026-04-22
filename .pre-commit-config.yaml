@@ -1,16 +1,7 @@
-# To use:
-#
-#     pre-commit run -a
-#
-# Or:
-#
-#     pre-commit install  # (runs every time you commit in git)
-#
-# To update this file:
-#
-#     pre-commit autoupdate
-#
-# See https://github.com/pre-commit/pre-commit
+ci:
+  autoupdate_commit_msg: 'chore: update pre-commit hooks'
+  autofix_commit_msg: "style: pre-commit fixes"
+  autoupdate_schedule: "monthly"
 
 repos:
 # Standard hooks
@@ -76,6 +67,3 @@ repos:
     additional_dependencies:
     - mdformat-gfm
     - mdformat-black
-
-ci:
-  autoupdate_commit_msg: 'chore: update pre-commit hooks'
