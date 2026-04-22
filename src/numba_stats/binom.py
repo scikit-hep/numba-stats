@@ -7,7 +7,6 @@ scipy.stats.binom: Scipy equivalent.
 """
 
 from math import lgamma as _lgamma
-from typing import Optional
 
 import numba as nb
 import numpy as np
@@ -68,7 +67,7 @@ def _cdf(k: np.ndarray, n: np.ndarray, p: float) -> np.ndarray:
     inline="always",
     error_model="numpy",
 )
-def _rvs(n: int, p: float, size: int, random_state: Optional[int]) -> np.ndarray:
+def _rvs(n: int, p: float, size: int, random_state: int | None) -> np.ndarray:
     _seed(random_state)
     return np.random.binomial(n, p, size=size)
 
