@@ -28,7 +28,7 @@ scale : float
 """
 
 
-@nb.njit  # type:ignore[misc]
+@nb.njit  # type:ignore[untyped-decorator]
 def _df_sigma(q: float, sigma: float) -> tuple[float, float]:
     # https://en.wikipedia.org/wiki/Q-Gaussian_distribution
     # relation to Student's t-distribution

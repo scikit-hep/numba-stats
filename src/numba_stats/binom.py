@@ -61,7 +61,7 @@ def _cdf(k: np.ndarray, n: np.ndarray, p: float) -> np.ndarray:
     return r
 
 
-@nb.njit(  # type:ignore[misc]
+@nb.njit(  # type:ignore[untyped-decorator]
     nb.int64[:](nb.uint64, nb.float32, nb.uint64, nb.optional(nb.uint64)),
     cache=True,
     inline="always",

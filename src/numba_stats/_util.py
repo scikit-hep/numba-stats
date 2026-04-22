@@ -123,7 +123,7 @@ def _rvs_jit(
     return _jit_custom(signatures, cache=cache)
 
 
-@nb.njit(cache=True)  # type:ignore[misc]
+@nb.njit(cache=True)  # type: ignore[untyped-decorator]
 def _seed(seed: int | None) -> None:
     if seed is None:
         with nb.objmode(seed="optional(uint8)"):
@@ -148,13 +148,13 @@ def _trans(x: np.ndarray, loc: float, scale: float) -> np.ndarray:
     return (x - loc) * inv_scale
 
 
-@nb.njit(cache=True, inline="always", error_model="numpy")  # type:ignore[misc]
+@nb.njit(cache=True, inline="always", error_model="numpy")  # type:ignore[untyped-decorator]
 def _erf_inplace(x: np.ndarray) -> None:
     for i in _prange(len(x)):
         x[i] = math.erf(x[i])
 
 
-@nb.njit(cache=True, inline="always", error_model="numpy")  # type:ignore[misc]
+@nb.njit(cache=True, inline="always", error_model="numpy")  # type:ignore[untyped-decorator]
 def _erfc_inplace(x: np.ndarray) -> None:
     for i in _prange(len(x)):
         x[i] = math.erfc(x[i])
