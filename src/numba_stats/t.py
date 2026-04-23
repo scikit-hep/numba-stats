@@ -7,7 +7,6 @@ scipy.stats.t: Scipy equivalent.
 """
 
 from math import lgamma as _lgamma
-from typing import Optional
 
 import numpy as np
 
@@ -67,7 +66,7 @@ def _ppf(p: np.ndarray, df: float, loc: float, scale: float) -> np.ndarray:
 
 @_rvs_jit(3)
 def _rvs(
-    df: float, loc: float, scale: float, size: int, random_state: Optional[int]
+    df: float, loc: float, scale: float, size: int, random_state: int | None
 ) -> np.ndarray:
     _seed(random_state)
     return loc + scale * np.random.standard_t(df, size)
