@@ -6,8 +6,6 @@ See Also
 scipy.stats.lognorm: Scipy equivalent.
 """
 
-from typing import Optional
-
 import numpy as np
 
 from . import norm as _norm
@@ -63,7 +61,7 @@ def _ppf(p: np.ndarray, s: float, loc: float, scale: float) -> np.ndarray:
 
 @_rvs_jit(3, cache=False)
 def _rvs(
-    s: float, loc: float, scale: float, size: int, random_state: Optional[int]
+    s: float, loc: float, scale: float, size: int, random_state: int | None
 ) -> np.ndarray:
     _seed(random_state)
     return loc + scale * np.random.lognormal(0, s, size)

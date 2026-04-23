@@ -6,8 +6,6 @@ See Also
 scipy.stats.uniform: Equivalent in Scipy.
 """
 
-from typing import Optional
-
 import numpy as np
 
 from ._util import _generate_wrappers, _jit, _prange, _rvs_jit, _seed
@@ -56,7 +54,7 @@ def _ppf(p: np.ndarray, a: float, w: float) -> np.ndarray:
 
 
 @_rvs_jit(2)
-def _rvs(a: float, w: float, size: int, random_state: Optional[int]) -> np.ndarray:
+def _rvs(a: float, w: float, size: int, random_state: int | None) -> np.ndarray:
     _seed(random_state)
     return np.random.uniform(a, a + w, size)
 

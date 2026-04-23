@@ -10,8 +10,6 @@ a change of variables, which is exploited in this implementation.
 https://en.wikipedia.org/wiki/Q-Gaussian_distribution
 """
 
-from typing import Optional
-
 import numba as nb
 import numpy as np
 
@@ -30,7 +28,7 @@ scale : float
 """
 
 
-@nb.njit  # type:ignore[misc]
+@nb.njit  # type:ignore[untyped-decorator]
 def _df_sigma(q: float, sigma: float) -> tuple[float, float]:
     # https://en.wikipedia.org/wiki/Q-Gaussian_distribution
     # relation to Student's t-distribution
@@ -91,7 +89,7 @@ def _ppf(p: np.ndarray, q: float, mu: float, sigma: float) -> np.ndarray:
 
 @_rvs_jit(3, cache=False)
 def _rvs(
-    q: float, mu: float, sigma: float, size: int, random_state: Optional[int]
+    q: float, mu: float, sigma: float, size: int, random_state: int | None
 ) -> np.ndarray:
     if q < 1 or q > 3:
         raise ValueError("q < 1 or q > 3 are not supported")

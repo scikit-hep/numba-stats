@@ -16,8 +16,8 @@ See Also
 scipy.interpolate.BPoly: Bernstein polynomials in Scipy.
 """
 
-from collections.abc import Iterable
-from typing import Any, Callable
+from collections.abc import Callable, Iterable
+from typing import Any
 
 import numpy as np
 
