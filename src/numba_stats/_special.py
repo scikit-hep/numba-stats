@@ -13,7 +13,7 @@ def get(name: str, signature: Any) -> Any:
     from scipy.special import cython_special
 
     # scipy-1.12 started to provide fused versions for some special functions
-    if name == "betainc":
+    if name in {"betainc", "stdtr", "stdtrit"}:
         fuse_name = f"__pyx_fuse_0{name}"
     else:
         fuse_name = f"__pyx_fuse_1{name}"
