@@ -29,9 +29,9 @@ classifiers = [
 ]
 
 [project.urls]
-repository = "https://github.com/hdembinski/numba-stats"
+repository = "https://github.com/scikit-hep/numba-stats"
 
-[project.optional-dependencies]
+[dependency-groups]
 test = [
     "pytest>=6",
     "pytest-cov>=5",

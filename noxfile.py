@@ -31,21 +31,21 @@ nox.options.sessions = ["mintest", "maxtest"]
 @nox.session(reuse_venv=True)
 def test(session: nox.Session) -> None:
     """Run all tests."""
-    session.install("-e.[test]")
+    session.install("-e.", "--group", "test")
     session.run("pytest", *session.posargs)
 
 
 @nox.session(python=MINIMUM_PYTHON, reuse_venv=True)
 def mintest(session: nox.Session) -> None:
     """Run all tests."""
-    session.install("-e.[test]")
+    session.install("-e.", "--group", "test")
     session.run("pytest", *session.posargs)
 
 
 @nox.session(python=LATEST_PYTHON, reuse_venv=True)
 def maxtest(session: nox.Session) -> None:
     """Run the unit and regular tests."""
-    session.install("-e.[test]")
+    session.install("-e.", "--group", "test")
     session.run("pytest", *session.posargs, env=ENV)
 
 
@@ -56,7 +56,7 @@ def cov(session: nox.Session) -> None:
 
     warnings.warn("JIT-compiled code lines are not counted.", stacklevel=2)
 
-    session.install("-e.[test]")
+    session.install("-e.", "--group", "test")
     session.run("coverage", "run", "-m", "pytest", env=ENV)
     session.run("coverage", "html", "-d", "htmlcov")
     session.run("coverage", "report", "-m")
