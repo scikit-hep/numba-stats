@@ -152,7 +152,7 @@ numba-stats was designed to be used in fitting of parametric models to data, whe
 
 But even when such savings are not there, the design requires less memory bandwidth compared to one where the parameters are also arrays. Computational speed is often limited by memory bandwidth nowadays.
 
-To efficiently support both the core use-case with scalar parameters and additionally the use-case where the parameters are arrays as well, one would need to write two implementations for each function, basically doubling the maintenance burden. I don't know of a compelling use-case where vectorization over parameters and the high performance of numba-stats is crucial, but if you have one, leave an issue. If you think you need the Poisson PDF vectorized over its parameter for maximum-likelihood fitting of histograms: it is a better and faster to use the Cash function instead (a numba implementation can be found in iminuit), see [#78](https://github.com/HDembinski/numba-stats/issues/78) for more details.
+To efficiently support both the core use-case with scalar parameters and additionally the use-case where the parameters are arrays as well, one would need to write two implementations for each function, basically doubling the maintenance burden. I don't know of a compelling use-case where vectorization over parameters and the high performance of numba-stats is crucial, but if you have one, leave an issue. If you think you need the Poisson PDF vectorized over its parameter for maximum-likelihood fitting of histograms: it is a better and faster to use the Cash function instead (a numba implementation can be found in iminuit), see [#78](https://github.com/scikit-hep/numba-stats/issues/78) for more details.
 
 ## Benchmarks
 

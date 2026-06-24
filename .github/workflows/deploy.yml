@@ -33,7 +33,7 @@ jobs:
 
     - run: python -m pip install --upgrade pip build
     - run: python -m build
-    - run: python -m pip install --prefer-binary $(echo dist/*.whl)'[test]'
+    - run: python -m pip install --prefer-binary --group test $(echo dist/*.whl)
     - run: python -m pytest
 
     - uses: pypa/gh-action-pypi-publish@release/v1
