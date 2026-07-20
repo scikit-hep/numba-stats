@@ -41,7 +41,7 @@ def _density(
             beta = beta_right
         z = (x[i] - loc) / scale
         r[i] = -0.5 * z**2 / (1 + beta * z**2)
-    return np.exp(r)  # type:ignore[no-any-return]
+    return np.exp(r)
 
 
 _generate_wrappers(globals())
