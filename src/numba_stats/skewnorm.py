@@ -76,7 +76,10 @@ def _rvs(
     v = np.random.normal(loc=0, scale=1, size=size)
     d = a / np.sqrt(1 + a**2)
     u1 = d * u0 + v * np.sqrt(1 - d**2)
-    return loc + scale * np.where(u0 >= 0, u1, -u1)
+    if u0 >= 0:
+        return loc + scale * u1
+    else:
+        return loc - scale * u1
 
 
 _generate_wrappers(globals())
