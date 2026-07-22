@@ -15,6 +15,7 @@ We provide numba-accelerated implementations of common probability distributions
 * Bernstein density (not normalized to unity, use this in extended likelihood fits)
 * Cruijff density (not normalized to unity, use this in extended likelihood fits)
 * CMS-Shape
+* (Truncated) Exponentially Modified Normal (exponnorm)
 
 The speed gains are huge, up to a factor of 100 compared to Scipy.
 
