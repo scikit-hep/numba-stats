@@ -3,7 +3,9 @@ import numpy as np
 import pytest
 import scipy.stats as sc
 from numpy.testing import assert_allclose
+
 from numba_stats import exponnorm
+
 
 def test_pdf_one():
     x = 1
@@ -11,9 +13,10 @@ def test_pdf_one():
     sigma = 2
     tau = 3
     K = tau / sigma
-    got = exponnorm.pdf(x, mu, sigma ,tau)
+    got = exponnorm.pdf(x, mu, sigma, tau)
     expected = sc.exponnorm.pdf(x, K, loc=mu, scale=sigma)
     assert_allclose(got, expected)
+
 
 def test_pdf():
     mu = 1
@@ -25,6 +28,7 @@ def test_pdf():
     expected = sc.exponnorm.pdf(x, K, loc=mu, scale=sigma)
     assert_allclose(got, expected)
 
+
 def test_cdf_one():
     x = 1
     mu = 1
@@ -35,6 +39,7 @@ def test_cdf_one():
     expected = sc.exponnorm.cdf(x, K, loc=mu, scale=sigma)
     assert_allclose(got, expected)
 
+
 def test_cdf():
     mu = 1
     sigma = 2
@@ -44,6 +49,7 @@ def test_cdf():
     got = exponnorm.cdf(x, mu, sigma, tau)
     expected = sc.exponnorm.cdf(x, K, loc=mu, scale=sigma)
     assert_allclose(got, expected)
+
 
 def test_rvs():
     mu = 2
@@ -66,6 +72,7 @@ def test_njit(fn, parallel):
     y = test(x)
 
     assert_allclose(y, fn(x, 0, 1, 2))
+
 
 @pytest.mark.filterwarnings("error")
 def test_rvs_njit():

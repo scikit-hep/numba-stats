@@ -14,6 +14,7 @@ def test_truncnorm(mu, sigma, tau):
     expected = 1.0
     np.testing.assert_allclose(got, expected)
 
+
 def test_pdf():
     x = np.linspace(-1, 5, 10)
     xmin = 1
@@ -26,7 +27,11 @@ def test_pdf():
     # We have to manually truncate the distribution since scipy doesn't provide one
     pmin = sc.exponnorm.cdf(xmin, K, loc=mu, scale=sigma)
     pmax = sc.exponnorm.cdf(xmax, K, loc=mu, scale=sigma)
-    expected = np.where((xmin <= x) & (x < xmax), sc.exponnorm.pdf(x, K, loc=mu, scale=sigma) / (pmax - pmin), 0.0)
+    expected = np.where(
+        (xmin <= x) & (x < xmax),
+        sc.exponnorm.pdf(x, K, loc=mu, scale=sigma) / (pmax - pmin),
+        0.0,
+    )
     np.testing.assert_allclose(got, expected)
 
 
@@ -42,5 +47,13 @@ def test_cdf():
     # We have to manually truncate the distribution since scipy doesn't provide one
     pmin = sc.exponnorm.cdf(xmin, K, loc=mu, scale=sigma)
     pmax = sc.exponnorm.cdf(xmax, K, loc=mu, scale=sigma)
-    expected = np.where(x < xmin, 0.0, np.where(x > xmax, 1.0, (sc.exponnorm.cdf(x, K, loc=mu, scale=sigma) - pmin) / (pmax - pmin)))
+    expected = np.where(
+        x < xmin,
+        0.0,
+        np.where(
+            x > xmax,
+            1.0,
+            (sc.exponnorm.cdf(x, K, loc=mu, scale=sigma) - pmin) / (pmax - pmin),
+        ),
+    )
     np.testing.assert_allclose(got, expected)
