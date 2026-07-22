@@ -35,7 +35,7 @@ a : float
 @_jit_pointwise(2)
 def _logpdf1(z: float, a: float) -> float:
     T = type(z)
-    return T(np.log(2)) + _norm._logpdf1(z) + np.log(_norm._cdf1(a * z))
+    return T(np.log(2)) + _norm._logpdf1(z) + T(np.log(_norm._cdf1(a * z)))
 
 
 @_jit(3)
