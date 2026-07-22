@@ -1,6 +1,7 @@
 """
 Skewed normal distribution.
 
+https://en.wikipedia.org/wiki/Skew_normal_distribution
 See Also
 --------
 scipy.stats.skewnorm: Scipy equivalent.
