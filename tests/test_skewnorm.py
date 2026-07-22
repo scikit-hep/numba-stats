@@ -6,6 +6,7 @@ from numpy.testing import assert_allclose
 
 from numba_stats import skewnorm
 
+
 def test_pdf_one():
     x = 1
     got = skewnorm.pdf(x, 1, 2, 3)
@@ -19,11 +20,13 @@ def test_pdf():
     expected = sc.skewnorm.pdf(x, 3, loc=1, scale=2)
     assert_allclose(got, expected, atol=1e-16)
 
+
 def test_cdf():
     x = np.linspace(-5, 5, 10)
     got = skewnorm.cdf(x, 1, 2, 3)
     expected = sc.skewnorm.cdf(x, 3, loc=1, scale=2)
     assert_allclose(got, expected, atol=1e-16)
+
 
 def test_rvs():
     mu = 2
@@ -46,6 +49,7 @@ def test_njit(fn, parallel):
     y = test(x)
 
     assert_allclose(y, fn(x, 0, 1, 2))
+
 
 @pytest.mark.filterwarnings("error")
 def test_rvs_njit():
