@@ -8,6 +8,8 @@ See Also
 scipy.stats.skewnorm: Scipy equivalent.
 """
 
+from math import sqrt as _sqrt
+
 import numpy as np
 
 from . import norm as _norm
@@ -74,8 +76,8 @@ def _rvs(
     # https://github.com/scipy/scipy/blob/v1.18.0/scipy/stats/_continuous_distns.py#L9724-L9946
     u0 = np.random.normal(loc=0, scale=1, size=size)
     v = np.random.normal(loc=0, scale=1, size=size)
-    d = a / np.sqrt(1 + a**2)
-    u1 = d * u0 + v * np.sqrt(1 - d**2)
+    d = a / _sqrt(1 + a**2)
+    u1 = d * u0 + v * _sqrt(1 - d**2)
     return loc + scale * np.where(u0 >= 0, u1, -u1)
 
 
