@@ -21,6 +21,7 @@ We provide JIT-compiled (with Numba) implementations of common probability distr
 - Cruijff density (not normalized to unity, use this in extended likelihood fits)
 - CMS-Shape
 - Generalized Argus
+- Skewnorm
 
 The speed gains are huge, up to a factor of 100 compared to `scipy`. Benchmarks are included in the repository and are run by `pytest`.
 
