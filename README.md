@@ -1,7 +1,9 @@
 # numba-stats
 
+[![Scikit-HEP](https://scikit-hep.org/assets/images/Scikit--HEP-Project-blue.svg)](https://scikit-hep.org/)
 [![PyPI Package latest release](https://img.shields.io/pypi/v/numba-stats.svg)](https://pypi.python.org/pypi/numba-stats)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.13236518.svg)](https://doi.org/10.5281/zenodo.13236518)
+[![Conda latest release](https://img.shields.io/conda/vn/conda-forge/numba-stats.svg)](https://github.com/conda-forge/numba-stats-feedstock)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.13236517.svg)](https://doi.org/10.5281/zenodo.13236517)
 
 We provide JIT-compiled (with Numba) implementations of common probability distributions.
 
@@ -21,6 +23,7 @@ We provide JIT-compiled (with Numba) implementations of common probability distr
 - Cruijff density (not normalized to unity, use this in extended likelihood fits)
 - CMS-Shape
 - Generalized Argus
+- Novosibirsk
 - Hypatia2 density (not normalized to unity, use this in extended likelihood fits)
 
 The speed gains are huge, up to a factor of 100 compared to `scipy`. Benchmarks are included in the repository and are run by `pytest`.

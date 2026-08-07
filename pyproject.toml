@@ -8,6 +8,11 @@ dynamic = ["version"]
 requires-python = ">=3.10"
 dependencies = ["numba>=0.53", "numpy>=1.20", "scipy>=1.5"]
 authors = [{ name = "Hans Dembinski", email = "hans.dembinski@gmail.com" }]
+maintainers = [
+    { name = "Iason Krommydas", email = "iason.krom@gmail.com" },
+    { name = "Hans Dembinski", email = "hans.dembinski@gmail.com" },
+    { name = "Scikit-HEP", email = "scikit-hep-admins@googlegroups.com" },
+]
 readme = "README.md"
 description = "Numba-accelerated implementations of scipy probability distributions and others used in particle physics"
 license = { text = "MIT" }
@@ -33,9 +38,9 @@ repository = "https://github.com/scikit-hep/numba-stats"
 
 [dependency-groups]
 test = [
-    "pytest>=6",
+    "pytest>=7",
     "pytest-cov>=5",
-    "pytest-benchmark>=4",
+    "pytest-benchmark>=5.2.0",
     "pydocstyle>=6",
     "coverage>=6",
     "nox"
@@ -47,7 +52,7 @@ where = ["src"]
 [tool.setuptools_scm]
 
 [tool.pytest.ini_options]
-minversion = "6.0"
+minversion = "7.0"
 addopts = "-q -ra --ff --strict-config --strict-markers"
 testpaths = ["tests"]
 log_level = "INFO"
