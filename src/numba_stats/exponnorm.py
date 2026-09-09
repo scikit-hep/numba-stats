@@ -3,8 +3,8 @@ Exponentially modified normal distribution.
 
 The distribution of the sum of a normal and an exponential random variate. It has a
 right tail. The left-tailed version, which is used to model signal loss in detectors,
-for example, in fits of gamma lines, is obtained by reflecting the variate, x -> 2 loc
-- x.
+for example, in fits of gamma lines, is obtained by reflecting the variate around loc,
+by replacing x with 2 * loc - x.
 
 https://en.wikipedia.org/wiki/Exponentially_modified_Gaussian_distribution
 
