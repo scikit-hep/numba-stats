@@ -67,6 +67,10 @@ def _cdf1(z: float, df: float, nc: float) -> float:
 @_jit_pointwise(3, cache=False)  # cannot cache because of _chndtrix
 def _ppf1(p: float, df: float, nc: float) -> float:
     T = type(p)
+    if p == 0:
+        return T(0)
+    if p == 1:
+        return T(np.inf)
     return T(_chndtrix(p, df, nc))
 
 

@@ -52,6 +52,10 @@ def _cdf1(z: float, a: float) -> float:
 @_jit_pointwise(2, cache=False)  # cannot cache because of _gammaincinv
 def _ppf1(p: float, a: float) -> float:
     T = type(p)
+    if p == 0:
+        return T(0)
+    if p == 1:
+        return T(np.inf)
     return T(_gammaincinv(a, p))
 
 
