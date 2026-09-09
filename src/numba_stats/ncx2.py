@@ -1,5 +1,5 @@
 """
-Noncentral chi squared distribution.
+Noncentral chi-squared distribution.
 
 See Also
 --------
@@ -8,6 +8,7 @@ scipy.stats.ncx2: Scipy equivalent.
 
 import numpy as np
 
+from . import chi2 as _chi2
 from ._special import chndtr as _chndtr
 from ._special import chndtrix as _chndtrix
 from ._special import ive as _ive
@@ -17,45 +18,53 @@ from ._util import (
     _jit,
     _jit_pointwise,
     _prange,
+    _rvs_jit,
+    _seed,
     _trans,
 )
 
 _doc_par = """
-df: float
-    Degrees of freedom.
-nc: float
-    Noncentrality parameter.
-loc: float
-    Location parameter.
-scale: float
-    Scale parameter.
+df : float
+    Degrees of freedom. Must be positive.
+nc : float
+    Noncentrality parameter. Must be non-negative. For nc = 0, the distribution is the
+    chi-squared distribution.
+loc : float
+    Shift of the distribution.
+scale : float
+    Width parameter.
 """
 
 
-@_jit_pointwise(3, cache=False)
+@_jit_pointwise(3, cache=False)  # cannot cache because of _ive
 def _logpdf1(z: float, df: float, nc: float) -> float:
-    # Implementation from scipy
-    # https://github.com/scipy/scipy/blob/54ef5423f2e4376230ec3bfda6912a07a50958e3/scipy/stats/_continuous_distns.py#L7811
+    # implementation taken from scipy.stats.ncx2, the factor exp(-zs * ns) is
+    # absorbed into the exponentially scaled Bessel function for numerical stability
+    if nc == 0:
+        return _chi2._logpdf1(z, df)
     T = type(z)
-    two = T(2.0)
-    df2 = df / two - T(1.0)
-    zs = T(np.sqrt(z))
-    ns = T(np.sqrt(nc))
-    res = _xlogy(df2 / two, z / nc) - T(0.5) * (zs - ns) ** 2
-    corr = _ive(df2, zs * ns) / two
-    if corr > 0:
-        return T(res + np.log(corr))
-    else:
+    if z < 0:
         return -T(np.inf)
+    half = T(0.5)
+    df2 = half * df - T(1)
+    zs = np.sqrt(z)
+    ns = np.sqrt(nc)
+    res = T(_xlogy(half * df2, z / nc)) - half * (zs - ns) ** 2
+    corr = half * T(_ive(df2, zs * ns))
+    if corr > 0:
+        return res + np.log(corr)  # type:ignore[no-any-return]
+    return -T(np.inf)
 
 
-@_jit_pointwise(3, cache=False)
+@_jit_pointwise(3, cache=False)  # cannot cache because of _chndtr
 def _cdf1(z: float, df: float, nc: float) -> float:
     T = type(z)
+    if z <= 0:
+        return T(0)
     return T(_chndtr(z, df, nc))
 
 
-@_jit_pointwise(3, cache=False)
+@_jit_pointwise(3, cache=False)  # cannot cache because of _chndtrix
 def _ppf1(p: float, df: float, nc: float) -> float:
     T = type(p)
     return T(_chndtrix(p, df, nc))
@@ -65,10 +74,11 @@ def _ppf1(p: float, df: float, nc: float) -> float:
 def _logpdf(
     x: np.ndarray, df: float, nc: float, loc: float, scale: float
 ) -> np.ndarray:
-    r = _trans(x, loc, scale)
-    for i in _prange(len(r)):
-        r[i] = _logpdf1(r[i], df, nc) - np.log(scale)
-    return r
+    z = _trans(x, loc, scale)
+    c = np.log(scale)
+    for i in _prange(len(z)):
+        z[i] = _logpdf1(z[i], df, nc) - c
+    return z
 
 
 @_jit(4, cache=False)
@@ -78,10 +88,10 @@ def _pdf(x: np.ndarray, df: float, nc: float, loc: float, scale: float) -> np.nd
 
 @_jit(4, cache=False)
 def _cdf(x: np.ndarray, df: float, nc: float, loc: float, scale: float) -> np.ndarray:
-    r = _trans(x, loc, scale)
-    for i in _prange(len(r)):
-        r[i] = _cdf1(r[i], df, nc)
-    return r
+    z = _trans(x, loc, scale)
+    for i in _prange(len(z)):
+        z[i] = _cdf1(z[i], df, nc)
+    return z
 
 
 @_jit(4, cache=False)
@@ -90,6 +100,14 @@ def _ppf(p: np.ndarray, df: float, nc: float, loc: float, scale: float) -> np.nd
     for i in _prange(len(r)):
         r[i] = scale * _ppf1(p[i], df, nc) + loc
     return r
+
+
+@_rvs_jit(4)
+def _rvs(
+    df: float, nc: float, loc: float, scale: float, size: int, random_state: int | None
+) -> np.ndarray:
+    _seed(random_state)
+    return loc + scale * np.random.noncentral_chisquare(df, nc, size)
 
 
 _generate_wrappers(globals())

@@ -6,60 +6,56 @@ from numpy.testing import assert_allclose
 
 from numba_stats import gamma
 
+As = (0.5, 1.0, 2.5, 10.0)
+
+# includes points below and at the lower edge of the support, loc = 2
+x = np.linspace(-1, 20, 22)
+
 
 def test_pdf_one():
-    alpha = 1
-    loc = 2
-    scale = 3
-    x = loc + 1
-    got = gamma.pdf(x, alpha, loc, scale)
-    expected = sc.gamma.pdf(x, alpha, loc=loc, scale=scale)
+    got = gamma.pdf(3, 1, 2, 3)
+    expected = sc.gamma.pdf(3, 1, 2, 3)
     assert_allclose(got, expected)
 
 
-def test_pdf():
-    alpha = 1
-    loc = 2
-    scale = 3
-    x = np.linspace(loc + 0.1, loc + 5, 10)
-    got = gamma.pdf(x, alpha, loc, scale)
-    expected = sc.gamma.pdf(x, alpha, loc=loc, scale=scale)
+@pytest.mark.parametrize("a", As)
+def test_pdf(a):
+    got = gamma.pdf(x, a, 2, 3)
+    expected = sc.gamma.pdf(x, a, 2, 3)
     assert_allclose(got, expected)
 
 
-def test_logpdf():
-    alpha = 1
-    loc = 2
-    scale = 3
-    x = np.linspace(loc + 0.1, loc + 5, 10)
-    got = gamma.logpdf(x, alpha, loc, scale)
-    expected = sc.gamma.logpdf(x, alpha, loc=loc, scale=scale)
+@pytest.mark.parametrize("a", As)
+def test_logpdf(a):
+    got = gamma.logpdf(x, a, 2, 3)
+    expected = sc.gamma.logpdf(x, a, 2, 3)
     assert_allclose(got, expected)
 
 
-def test_cdf():
-    alpha = 1
-    loc = 2
-    scale = 3
-    x = np.linspace(loc + 0.1, loc + 5, 10)
-    got = gamma.cdf(x, alpha, loc, scale)
-    expected = sc.gamma.cdf(x, alpha, loc=loc, scale=scale)
+@pytest.mark.parametrize("a", As)
+def test_cdf(a):
+    got = gamma.cdf(x, a, 2, 3)
+    expected = sc.gamma.cdf(x, a, 2, 3)
     assert_allclose(got, expected)
 
 
-def test_ppf():
-    alpha = 4
-    loc = 3
-    scale = 4
-
+@pytest.mark.parametrize("a", As)
+def test_ppf(a):
     p = np.linspace(0, 1, 10)
-    got = gamma.ppf(p, alpha, loc, scale)
-    expected = sc.gamma.ppf(p, alpha, loc=loc, scale=scale)
+    got = gamma.ppf(p, a, 2, 3)
+    expected = sc.gamma.ppf(p, a, 2, 3)
     assert_allclose(got, expected)
 
-    got = gamma.ppf(0.5, alpha, loc, scale)
-    expected = sc.gamma.ppf(0.5, alpha, loc=loc, scale=scale)
+    got = gamma.ppf(0.5, a, 2, 3)
+    expected = sc.gamma.ppf(0.5, a, 2, 3)
     assert_allclose(got, expected)
+
+
+@pytest.mark.parametrize("a", (0.5, 4.0))
+def test_rvs(a):
+    x = gamma.rvs(a, 2, 3, size=100_000, random_state=1)
+    r = sc.kstest(x, lambda x: gamma.cdf(x, a, 2, 3))
+    assert r.pvalue > 0.01
 
 
 @pytest.mark.filterwarnings("error")
@@ -68,9 +64,18 @@ def test_ppf():
 def test_njit(fn, parallel):
     @nb.njit(parallel=parallel, fastmath=True)
     def test(x):
-        return fn(x, 0.0, 1.0, 2.0)
+        return fn(x, 3.0, 1.0, 2.0)
 
-    x = np.linspace(1.1, 5.0, 1000)
+    x = np.linspace(1.1, 20, 1000)
     y = test(x)
 
-    assert_allclose(y, fn(x, 0, 1, 2))
+    assert_allclose(y, fn(x, 3, 1, 2))
+
+
+@pytest.mark.filterwarnings("error")
+def test_rvs_njit():
+    @nb.njit
+    def test():
+        return gamma.rvs(3.0, 1.0, 2.0, 10, 1)
+
+    assert_allclose(test(), gamma.rvs(3, 1, 2, 10, 1))

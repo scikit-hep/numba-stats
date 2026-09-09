@@ -4,67 +4,66 @@ import pytest
 import scipy.stats as sc
 from numpy.testing import assert_allclose
 
-from numba_stats import ncx2
+from numba_stats import chi2, ncx2
+
+# df, nc; includes nc = 0, which is the null hypothesis in likelihood ratio tests
+pars = ((1.0, 0.5), (2.0, 1.0), (2.5, 3.0), (4.0, 2.0), (10.0, 30.0), (3.0, 0.0))
+
+# includes points below the lower edge of the support, loc = 2
+x = np.linspace(-1, 30, 30)
 
 
 def test_pdf_one():
-    df = 4
-    nc = 2
-    loc = 3
-    scale = 4
-    x = loc + 1
-    got = ncx2.pdf(x, df, nc, loc, scale)
-    expected = sc.ncx2.pdf(x, df, nc, loc=loc, scale=scale)
+    got = ncx2.pdf(3, 4, 2, 2, 3)
+    expected = sc.ncx2.pdf(3, 4, 2, 2, 3)
     assert_allclose(got, expected)
 
 
-def test_pdf():
-    df = 4
-    nc = 2
-    loc = 3
-    scale = 4
-    x = np.linspace(loc + 0.1, loc + 5, 10)
-    got = ncx2.pdf(x, df, nc, loc, scale)
-    expected = sc.ncx2.pdf(x, df, nc, loc=loc, scale=scale)
+@pytest.mark.parametrize(("df", "nc"), pars)
+def test_pdf(df, nc):
+    got = ncx2.pdf(x, df, nc, 2, 3)
+    expected = sc.ncx2.pdf(x, df, nc, 2, 3)
     assert_allclose(got, expected)
 
 
-def test_logpdf():
-    df = 4
-    nc = 2
-    loc = 3
-    scale = 4
-    x = np.linspace(loc + 0.1, loc + 5, 10)
-    got = ncx2.logpdf(x, df, nc, loc, scale)
-    expected = sc.ncx2.logpdf(x, df, nc, loc=loc, scale=scale)
+@pytest.mark.parametrize(("df", "nc"), pars)
+def test_logpdf(df, nc):
+    got = ncx2.logpdf(x, df, nc, 2, 3)
+    expected = sc.ncx2.logpdf(x, df, nc, 2, 3)
     assert_allclose(got, expected)
 
 
-def test_cdf():
-    df = 4
-    nc = 2
-    loc = 3
-    scale = 4
-    x = np.linspace(loc + 0.1, loc + 5, 10)
-    got = ncx2.cdf(x, df, nc, loc, scale)
-    expected = sc.ncx2.cdf(x, df, nc, loc=loc, scale=scale)
+@pytest.mark.parametrize(("df", "nc"), pars)
+def test_cdf(df, nc):
+    got = ncx2.cdf(x, df, nc, 2, 3)
+    expected = sc.ncx2.cdf(x, df, nc, 2, 3)
     assert_allclose(got, expected)
 
 
-def test_ppf():
-    df = 4
-    nc = 2
-    loc = 3
-    scale = 4
-
+@pytest.mark.parametrize(("df", "nc"), pars)
+def test_ppf(df, nc):
     p = np.linspace(0, 1, 10)
-    got = ncx2.ppf(p, df, nc, loc, scale)
-    expected = sc.ncx2.ppf(p, df, nc, loc=loc, scale=scale)
+    got = ncx2.ppf(p, df, nc, 2, 3)
+    expected = sc.ncx2.ppf(p, df, nc, 2, 3)
     assert_allclose(got, expected)
 
-    got = ncx2.ppf(0.5, df, nc, loc, scale)
-    expected = sc.ncx2.ppf(0.5, df, nc, loc=loc, scale=scale)
+    got = ncx2.ppf(0.5, df, nc, 2, 3)
+    expected = sc.ncx2.ppf(0.5, df, nc, 2, 3)
     assert_allclose(got, expected)
+
+
+@pytest.mark.parametrize("df", (1.0, 2.0, 4.5))
+def test_vs_chi2(df):
+    # the distribution becomes a chi-squared distribution for nc -> 0
+    assert_allclose(ncx2.pdf(x, df, 0, 2, 3), chi2.pdf(x, df, 2, 3))
+    assert_allclose(ncx2.cdf(x, df, 0, 2, 3), chi2.cdf(x, df, 2, 3))
+
+
+@pytest.mark.parametrize(("df", "nc"), ((1.0, 0.5), (4.0, 2.0), (3.0, 0.0)))
+def test_rvs(df, nc):
+    x = ncx2.rvs(df, nc, 2, 3, size=100_000, random_state=2)
+    r = sc.kstest(x, lambda x: ncx2.cdf(x, df, nc, 2, 3))
+    assert r.pvalue > 0.01
 
 
 @pytest.mark.filterwarnings("error")
@@ -73,9 +72,18 @@ def test_ppf():
 def test_njit(fn, parallel):
     @nb.njit(parallel=parallel, fastmath=True)
     def test(x):
-        return fn(x, 0.0, 1.0, 2.0, 3.0)
+        return fn(x, 3.0, 2.0, 1.0, 2.0)
 
-    x = np.linspace(1.1, 5.0, 1000)
+    x = np.linspace(1.1, 30, 1000)
     y = test(x)
 
-    assert_allclose(y, fn(x, 0, 1, 2, 3))
+    assert_allclose(y, fn(x, 3, 2, 1, 2))
+
+
+@pytest.mark.filterwarnings("error")
+def test_rvs_njit():
+    @nb.njit
+    def test():
+        return ncx2.rvs(3.0, 2.0, 1.0, 2.0, 10, 1)
+
+    assert_allclose(test(), ncx2.rvs(3, 2, 1, 2, 10, 1))
