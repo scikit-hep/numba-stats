@@ -1,19 +1,13 @@
-r"""
+"""
 Truncated exponentially modified normal distribution.
 
-The distribution is defined as the distribution of the sum of a normal and
-exponential random variate. This definition has a right tail, but a left
-tailed version can be defined by taking the difference between a normal and
-exponential random variate instead.
-
-To convert between the left- and right-tailed versions, a coordinate
-transformation x -> 2\mu - x can be used to reflect the x-axis.
-
-https://en.wikipedia.org/wiki/Exponentially_modified_Gaussian_distribution
+See the module exponnorm for a description of the untruncated distribution. There is
+no scipy equivalent. The truncation parameters xmin and xmax follow the convention of
+truncnorm and truncexpon.
 
 See Also
 --------
-scipy.stats.exponnorm: Untruncated scipy equivalent.
+scipy.stats.exponnorm: Scipy equivalent of the untruncated distribution.
 """
 
 import numpy as np
@@ -26,48 +20,62 @@ xmin : float
     Lower edge of the distribution.
 xmax : float
     Upper edge of the distribution.
+K : float
+    Shape parameter. Mean of the exponential component divided by the standard
+    deviation of the normal component. Must be positive.
 loc : float
-    Location parameter.
+    Location of the mode of the normal component.
 scale : float
-    Scale parameter.
-tau : float
-    Exponential decay parameter.
+    Standard deviation of the normal component.
 """
 
 
-@_jit(5)
+@_jit(5, cache=False)
+def _logpdf(
+    x: np.ndarray, xmin: float, xmax: float, K: float, loc: float, scale: float
+) -> np.ndarray:
+    T = type(scale)
+    scale2 = T(1) / scale
+    z = (x - loc) * scale2
+    zmin = (xmin - loc) * scale2
+    zmax = (xmax - loc) * scale2
+    c = np.log(scale * (_exponnorm._cdf1(zmax, K) - _exponnorm._cdf1(zmin, K)))
+    for i in _prange(len(z)):
+        if zmin <= z[i] < zmax:
+            z[i] = _exponnorm._logpdf1(z[i], K) - c
+        else:
+            z[i] = -T(np.inf)
+    return z
+
+
+@_jit(5, cache=False)
 def _pdf(
-    x: np.ndarray, xmin: float, xmax: float, loc: float, scale: float, tau: float
+    x: np.ndarray, xmin: float, xmax: float, K: float, loc: float, scale: float
 ) -> np.ndarray:
-    T = type(scale)
-    pmin = _exponnorm._cdf1(xmin, loc, scale, tau)
-    pmax = _exponnorm._cdf1(xmax, loc, scale, tau)
-    r = np.zeros_like(x)
-    for i in _prange(len(x)):
-        if xmin <= x[i] < xmax:
-            r[i] = _exponnorm._pdf1(x[i], loc, scale, tau) / (pmax - pmin)
-        else:
-            r[i] = T(0.0)
-    return r
+    return np.exp(_logpdf(x, xmin, xmax, K, loc, scale))
 
 
-@_jit(5)
+@_jit(5, cache=False)
 def _cdf(
-    x: np.ndarray, xmin: float, xmax: float, loc: float, scale: float, tau: float
+    x: np.ndarray, xmin: float, xmax: float, K: float, loc: float, scale: float
 ) -> np.ndarray:
     T = type(scale)
-    pmin = _exponnorm._cdf1(xmin, loc, scale, tau)
-    pmax = _exponnorm._cdf1(xmax, loc, scale, tau)
-    r = np.zeros_like(x)
-    for i in _prange(len(x)):
-        if xmin <= x[i]:
-            if x[i] < xmax:
-                r[i] = (_exponnorm._cdf1(x[i], loc, scale, tau) - pmin) / (pmax - pmin)
+    scale2 = T(1) / scale
+    z = (x - loc) * scale2
+    zmin = (xmin - loc) * scale2
+    zmax = (xmax - loc) * scale2
+    pmin = _exponnorm._cdf1(zmin, K)
+    pmax = _exponnorm._cdf1(zmax, K)
+    scale3 = T(1) / (pmax - pmin)
+    for i in _prange(len(z)):
+        if zmin <= z[i]:
+            if z[i] < zmax:
+                z[i] = (_exponnorm._cdf1(z[i], K) - pmin) * scale3
             else:
-                r[i] = T(1.0)
+                z[i] = T(1)
         else:
-            r[i] = T(0.0)
-    return r
+            z[i] = T(0)
+    return z
 
 
 _generate_wrappers(globals())

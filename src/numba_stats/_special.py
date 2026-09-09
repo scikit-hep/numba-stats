@@ -33,6 +33,7 @@ def get(name: str, signature: Any) -> Any:
 
 # unary functions (double)
 ndtri = get("ndtri", float64(float64))
+erfcx = get("erfcx", float64(float64))
 
 # binary functions (double)
 gammainc = get("gammainc", float64(float64, float64))
