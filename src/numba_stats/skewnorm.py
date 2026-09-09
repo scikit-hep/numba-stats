@@ -19,6 +19,8 @@ See Also
 scipy.stats.skewnorm: Scipy equivalent.
 """
 
+from math import erfc as _erfc
+
 import numpy as np
 
 from . import norm as _norm
@@ -54,7 +56,9 @@ def _logpdf1(z: float, a: float) -> float:
 @_jit_pointwise(2, cache=False)  # cannot cache because of _owens_t
 def _cdf1(z: float, a: float) -> float:
     T = type(z)
-    return _norm._cdf1(z) - T(2) * T(_owens_t(z, a))
+    # erfc(-z) instead of 1 + erf(z) to retain relative precision in the left tail
+    phi = T(0.5) * T(_erfc(-z * T(np.sqrt(0.5))))
+    return phi - T(2) * T(_owens_t(z, a))
 
 
 @_jit(3, cache=False)
