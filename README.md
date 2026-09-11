@@ -25,6 +25,8 @@ We provide JIT-compiled (with Numba) implementations of common probability distr
 - Generalized Argus
 - Novosibirsk
 - Hypatia2 density (not normalized to unity, use this in extended likelihood fits)
+- (Noncentral) Chi-squared
+- Gamma
 
 The speed gains are large, typically a factor of 10 to 20 compared to `scipy` for short arrays, where the call overhead dominates, and a factor of 1 to 4 for long arrays, depending on the distribution. Benchmarks are included in the repository and are run by `pytest`.
 

@@ -17,6 +17,8 @@ We provide numba-accelerated implementations of common probability distributions
 * CMS-Shape
 * Novosibirsk
 * Hypatia2 density (not normalized to unity, use this in extended likelihood fits)
+* (Noncentral) Chi-squared
+* Gamma
 
 The speed gains are large, typically a factor of 10 to 20 compared to Scipy for short
 arrays and a factor of 1 to 4 for long arrays, depending on the distribution.
