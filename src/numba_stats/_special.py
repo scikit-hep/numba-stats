@@ -13,7 +13,7 @@ def get(name: str, signature: Any) -> Any:
     from scipy.special import cython_special
 
     # scipy-1.12 started to provide fused versions for some special functions
-    if name in {"betainc", "stdtr", "stdtrit"}:
+    if name in {"betainc", "stdtr", "stdtrit", "chndtr", "chndtrix"}:
         fuse_name = f"__pyx_fuse_0{name}"
     else:
         fuse_name = f"__pyx_fuse_1{name}"
@@ -38,9 +38,11 @@ erfcx = get("erfcx", float64(float64))
 # binary functions (double)
 gammainc = get("gammainc", float64(float64, float64))
 gammaincc = get("gammaincc", float64(float64, float64))
+gammaincinv = get("gammaincinv", float64(float64, float64))
 stdtrit = get("stdtrit", float64(float64, float64))
 stdtr = get("stdtr", float64(float64, float64))
 kv = get("kv", float64(float64, float64))
+ive = get("ive", float64(float64, float64))
 
 # n-ary functions (double)
 voigt_profile = get("voigt_profile", float64(float64, float64, float64))
@@ -48,3 +50,5 @@ xlogy = get("xlogy", float64(float64, float64))
 xlog1py = get("xlog1py", float64(float64, float64))
 betainc = get("betainc", float64(float64, float64, float64))
 hyp2f1 = get("hyp2f1", float64(float64, float64, float64, float64))
+chndtr = get("chndtr", float64(float64, float64, float64))
+chndtrix = get("chndtrix", float64(float64, float64, float64))

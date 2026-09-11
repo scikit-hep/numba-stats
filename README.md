@@ -25,9 +25,11 @@ We provide JIT-compiled (with Numba) implementations of common probability distr
 - Generalized Argus
 - Novosibirsk
 - Hypatia2 density (not normalized to unity, use this in extended likelihood fits)
+- (Noncentral) Chi-squared
+- Gamma
 - (Truncated) Exponentially modified normal
 
-The speed gains are huge, up to a factor of 100 compared to `scipy`. Benchmarks are included in the repository and are run by `pytest`.
+The speed gains are large, typically a factor of 10 to 20 compared to `scipy` for short arrays, where the call overhead dominates, and a factor of 1 to 4 for long arrays, depending on the distribution. Benchmarks are included in the repository and are run by `pytest`.
 
 The distributions are optimized for the use in maximum-likelihood fits, where you query a distribution at many points with a single set of parameters.
 
@@ -161,9 +163,9 @@ To efficiently support both the core use-case with scalar parameters and additio
 
 ## Benchmarks
 
-The following benchmarks were produced on an Intel(R) Core(TM) i7-8569U CPU @ 2.80GHz against SciPy-1.10.1. The dotted line on the right-hand figure shows the expected speedup (4x) from parallelization on a CPU with four physical cores.
+The following benchmarks were produced on an AMD Ryzen 7 7800X3D (8 cores, 16 threads) running Linux with Python 3.14.7 against SciPy 1.18.1 and Numba 0.67.0. The dotted line on the right-hand figure marks a speed-up of 4x from parallelization for reference. For simple functions, whose single-threaded execution is limited by memory bandwidth, the speed-up from parallelization can exceed the number of cores, because the arrays are split across the private caches of the cores.
 
-We see large speed-ups with respect to `scipy` for almost all distributions. Also calls with short arrays profit from `numba_stats`, due to the reduced call-overhead. The functions `voigt.pdf` and `t.ppf` do not run faster than the `scipy` versions, because we call the respective `scipy` implementation written in FORTRAN. The advantage provided by `numba_stats` here is that you can call these functions from other `numba`-JIT'ed functions, which is not possible with the `scipy` implementations, and `voigt.pdf` still profits from auto-parallelization.
+We see speed-ups with respect to `scipy` for almost all distributions. Calls with short arrays profit most from `numba_stats`, due to the reduced call-overhead. For long arrays, the gain shrinks to a factor of 1 to 4, and for a few functions, like `norm.cdf`, `scipy` is on par or slightly faster, since `scipy` has become considerably faster over the years. The functions `voigt.pdf`, `t.cdf`, and `t.ppf` do not run faster than the `scipy` versions, because we call the respective `scipy` implementation. The advantage provided by `numba_stats` here is that you can call these functions from other `numba`-JIT'ed functions, which is not possible with the `scipy` implementations, and `voigt.pdf` and `t.cdf` still profit from auto-parallelization.
 
 The `bernstein.density` does not profit from auto-parallelization, on the contrary it becomes much slower, so this should be avoided. This is a known issue, the internal implementation cannot be easily auto-parallelized.
 
