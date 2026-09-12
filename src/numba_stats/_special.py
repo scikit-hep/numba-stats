@@ -34,6 +34,7 @@ def get(name: str, signature: Any) -> Any:
 # unary functions (double)
 ndtri = get("ndtri", float64(float64))
 erfcx = get("erfcx", float64(float64))
+log_ndtr = get("log_ndtr", float64(float64))
 
 # binary functions (double)
 gammainc = get("gammainc", float64(float64, float64))
@@ -43,6 +44,7 @@ stdtrit = get("stdtrit", float64(float64, float64))
 stdtr = get("stdtr", float64(float64, float64))
 kv = get("kv", float64(float64, float64))
 ive = get("ive", float64(float64, float64))
+owens_t = get("owens_t", float64(float64, float64))
 
 # n-ary functions (double)
 voigt_profile = get("voigt_profile", float64(float64, float64, float64))

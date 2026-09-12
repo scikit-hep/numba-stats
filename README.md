@@ -28,6 +28,7 @@ We provide JIT-compiled (with Numba) implementations of common probability distr
 - (Noncentral) Chi-squared
 - Gamma
 - (Truncated) Exponentially modified normal
+- Skew-normal
 
 The speed gains are large, typically a factor of 10 to 20 compared to `scipy` for short arrays, where the call overhead dominates, and a factor of 1 to 4 for long arrays, depending on the distribution. Benchmarks are included in the repository and are run by `pytest`.
 
