@@ -182,6 +182,11 @@ def _type_check_scalar(lo: Any, hi: Any, *rest: Any) -> Any:
     return None
 
 
+def _asarray(x: Any) -> np.ndarray:
+    x = np.asarray(x)
+    return x if x.dtype.kind == "f" else x.astype(float)
+
+
 def _generate_wrappers(d: dict[str, Any]) -> None:
     import inspect
 
@@ -189,7 +194,9 @@ def _generate_wrappers(d: dict[str, Any]) -> None:
         d["_wrap"] = _wrap
     if "_type_check" not in d:
         d["_type_check"] = _type_check
-    d["_type_check_scalar"] = _type_check_scalar
+    if "_type_check_scalar" not in d:
+        d["_type_check_scalar"] = _type_check_scalar
+    d["_asarray"] = _asarray
     d["_overload"] = overload
 
     doc_par = d["_doc_par"].strip() if "_doc_par" in d else None
@@ -225,7 +232,13 @@ def _generate_wrappers(d: dict[str, Any]) -> None:
             "cdf": "Return cumulative probability.",
             "ppf": "Return quantile for given probability.",
             "rvs": "Return random samples from distribution.",
-            "integrate": "Return integral of probability density over an interval.",
+            "integrate": (
+                "Return probability mass summed over an interval."
+                if "_pmf" in d
+                else "Return integral of density over an interval."
+                if "_density" in d
+                else "Return integral of probability density over an interval."
+            ),
         }.get(fname, None)
         if fname == "ppf":
             before_par = """\
@@ -234,6 +247,13 @@ x: ArrayLike
 """
         elif fname == "rvs":
             before_par = ""
+        elif fname == "integrate" and "_pmf" in d:
+            before_par = """\
+lo : float
+    Lower limit, excluded.
+hi : float
+    Upper limit, included.
+"""
         elif fname == "integrate":
             before_par = """\
 lo : float
@@ -266,9 +286,15 @@ def _ol_{fname}({args_with_types}):
 """
         elif fname == "integrate":
             lo, hi, *rest = parameters
+            # array parameters are converted like the first argument of _wrap
+            conv = "".join(
+                f"    {k} = _asarray({k})\n"
+                for k, v in parameters.items()
+                if v.annotation is np.ndarray
+            )
             code = f"""
 def {fname}({args_with_types}):
-    return {impl}({args})
+{conv}    return {impl}({args})
 
 @_overload({fname}, inline="always")
 def _ol_{fname}({args_with_types}):
@@ -292,7 +318,11 @@ def _ol_{fname}({args_with_types}):
     return {impl}.__wrapped__
 """
 
-        if fname == "integrate":
+        if fname == "integrate" and "_pmf" in d:
+            returns = (
+                "float\n    Probability of lo < k <= hi, which is cdf(hi) - cdf(lo)."
+            )
+        elif fname == "integrate":
             returns = "float\n    Integral of the density from lo to hi."
         else:
             returns = "Array-like\n    Function evaluated at the x points."
