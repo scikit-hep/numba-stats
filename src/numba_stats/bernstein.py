@@ -143,6 +143,31 @@ def _integral(x: np.ndarray, beta: np.ndarray, xmin: float, xmax: float) -> np.n
 def _integrate(
     lo: float, hi: float, beta: np.ndarray, xmin: float, xmax: float
 ) -> float:
+    """
+    Return integral of a Bernstein polynomial from lo to hi.
+
+    Parameters
+    ----------
+    lo : float
+        Lower limit of the integral.
+    hi : float
+        Upper limit of the integral.
+    beta : ArrayLike
+        Vector of parameters (1D).
+    xmin : float
+        Lower edge of the domain of x.
+    xmax : float
+        Upper edge of the domain of x.
+
+    Returns
+    -------
+    float
+        Integral value.
+
+    See Also
+    --------
+    scipy.interpolate.BPoly
+    """
     x = np.empty(2, beta.dtype)
     x[0] = lo
     x[1] = hi
