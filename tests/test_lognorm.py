@@ -1,5 +1,6 @@
 import numba as nb
 import numpy as np
+import pytest
 import scipy.stats as sc
 from numpy.testing import assert_allclose
 
@@ -57,3 +58,27 @@ def test_njit():
     assert_allclose(b, lognorm.pdf(x, 1.0, 0.0, 1.0))
     assert_allclose(c, lognorm.cdf(x, 1.0, 0.0, 1.0))
     assert_allclose(d, x)
+
+
+def test_integrate():
+    par = 0.5, 1, 2
+    for lo, hi in ((-3.0, 4.0), (0.5, 0.7), (4.0, -3.0), (-100.0, 100.0), (2.5, 6.0)):
+        got = lognorm.integrate(lo, hi, *par)
+        expected = np.diff(lognorm.cdf([lo, hi], *par))[0]
+        assert_allclose(got, expected, rtol=1e-9, atol=1e-15)
+    assert_allclose(lognorm.integrate(-np.inf, np.inf, *par), 1)
+
+
+def test_integrate_tail():
+    got = lognorm.integrate(1e5, 2e5, 0.5, 0, 1)
+    assert_allclose(got, sc.lognorm.sf(1e5, 0.5) - sc.lognorm.sf(2e5, 0.5), rtol=1e-10)
+
+
+@pytest.mark.filterwarnings("error")
+def test_integrate_njit():
+    @nb.njit
+    def test(lo, hi):
+        return lognorm.integrate(lo, hi, 0.5, 1.0, 2.0)
+
+    expected = lognorm.integrate(-1.0, 1.5, 0.5, 1.0, 2.0)
+    assert_allclose(test(-1.0, 1.5), expected)

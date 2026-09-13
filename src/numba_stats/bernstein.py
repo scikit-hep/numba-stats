@@ -25,6 +25,8 @@ from ._util import (
     _Floats,
     _generate_wrappers,
     _jit,
+    _jit_custom,
+    _readonly_carray,
     _trans,
 )
 
@@ -137,6 +139,42 @@ def _integral(x: np.ndarray, beta: np.ndarray, xmin: float, xmax: float) -> np.n
     return _de_castlejau(z, beta)
 
 
+@_jit_custom([T(T, T, _readonly_carray(T), T, T) for T in _Floats])
+def _integrate(
+    lo: float, hi: float, beta: np.ndarray, xmin: float, xmax: float
+) -> float:
+    """
+    Return integral of a Bernstein polynomial from lo to hi.
+
+    Parameters
+    ----------
+    lo : float
+        Lower limit of the integral.
+    hi : float
+        Upper limit of the integral.
+    beta : ArrayLike
+        Vector of parameters (1D).
+    xmin : float
+        Lower edge of the domain of x.
+    xmax : float
+        Upper edge of the domain of x.
+
+    Returns
+    -------
+    float
+        Integral value.
+
+    See Also
+    --------
+    scipy.interpolate.BPoly
+    """
+    x = np.empty(2, beta.dtype)
+    x[0] = lo
+    x[1] = hi
+    r = _integral(x, beta, xmin, xmax)
+    return r[1] - r[0]  # type:ignore[no-any-return]
+
+
 def _wrap(
     fn: Callable[[np.ndarray, np.ndarray, float, float], np.ndarray],
 ) -> Callable[[np.ndarray, np.ndarray, float, float], np.ndarray]:
@@ -169,6 +207,29 @@ def _type_check(x: Any, beta: Any, xmin: Any, xmax: Any) -> None:
     for i, tp in enumerate((xmin, xmax)):
         if not isinstance(tp, T):
             raise TypingError(f"argument {i + 1} must be of type {tp}")
+
+
+def _type_check_scalar(lo: Any, hi: Any, beta: Any, xmin: Any, xmax: Any) -> Any:
+    from numba.core.errors import TypingError
+    from numba.types import Array, Integer, float32
+
+    if not (isinstance(beta, Array) and beta.dtype in _Floats):
+        raise TypingError("beta must be an array of floating point type")
+    T = beta.dtype
+    for tp in (xmin, xmax):
+        if tp != T:
+            raise TypingError("xmin and xmax must have the same type as beta")
+    cast = False
+    for tp in (lo, hi):
+        if isinstance(tp, Integer):
+            cast = True
+        elif tp != T:
+            raise TypingError(
+                "lo and hi must be integers or have the same type as beta"
+            )
+    if cast:
+        return np.float32 if T == float32 else np.float64
+    return None
 
 
 _generate_wrappers(globals())

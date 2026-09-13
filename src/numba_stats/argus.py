@@ -20,7 +20,7 @@ from math import lgamma as _lg
 import numpy as np
 
 from ._special import gammainc as _ginc
-from ._util import _generate_wrappers, _jit, _prange
+from ._util import _generate_wrappers, _jit, _jit_pointwise, _prange
 
 _doc_par = """
 x : Array-like
@@ -88,6 +88,24 @@ def _cdf(x: np.ndarray, chi: float, c: float, p: float) -> np.ndarray:
         else:
             r[i] = zero
     return r
+
+
+@_jit_pointwise(5, cache=False)
+def _integrate(lo: float, hi: float, chi: float, c: float, p: float) -> float:
+    T = type(p)
+    zero = T(0)
+    one = T(1)
+    half = T(0.5)
+    p1 = p + one
+    half_chi2 = half * chi * chi
+    inv_c2 = one / (c * c)
+    xa = min(max(lo, zero), c)
+    xb = min(max(hi, zero), c)
+    ya = one - xa * xa * inv_c2
+    yb = one - xb * xb * inv_c2
+    return (T(_ginc(p1, half_chi2 * ya)) - T(_ginc(p1, half_chi2 * yb))) / T(
+        _ginc(p1, half_chi2)
+    )
 
 
 _generate_wrappers(globals())

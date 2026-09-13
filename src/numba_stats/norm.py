@@ -7,6 +7,7 @@ scipy.stats.norm: Scipy equivalent.
 """
 
 from math import erf as _erf
+from math import erfc as _erfc
 
 import numpy as np
 
@@ -81,6 +82,24 @@ def _ppf(p: np.ndarray, loc: float, scale: float) -> np.ndarray:
 def _rvs(loc: float, scale: float, size: int, random_state: int | None) -> np.ndarray:
     _seed(random_state)
     return np.random.normal(loc, scale, size)
+
+
+@_jit_pointwise(2)
+def _integrate1(za: float, zb: float) -> float:
+    # integral of the standard normal density from za to zb; erfc is used on the
+    # side where the interval lies to retain relative precision in the tails
+    T = type(za)
+    half = T(0.5)
+    c = T(np.sqrt(0.5))
+    if za + zb > 0:
+        return half * (T(_erfc(za * c)) - T(_erfc(zb * c)))
+    return half * (T(_erfc(-zb * c)) - T(_erfc(-za * c)))
+
+
+@_jit_pointwise(4)
+def _integrate(lo: float, hi: float, loc: float, scale: float) -> float:
+    inv_scale = type(scale)(1) / scale
+    return _integrate1((lo - loc) * inv_scale, (hi - loc) * inv_scale)
 
 
 _generate_wrappers(globals())

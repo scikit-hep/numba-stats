@@ -79,3 +79,27 @@ def test_rvs_njit():
         return chi2.rvs(3.0, 1.0, 2.0, 10, 1)
 
     assert_allclose(test(), chi2.rvs(3, 1, 2, 10, 1))
+
+
+def test_integrate():
+    par = 3, 1, 2
+    for lo, hi in ((-3.0, 4.0), (0.5, 0.7), (4.0, -3.0), (-100.0, 100.0), (2.5, 6.0)):
+        got = chi2.integrate(lo, hi, *par)
+        expected = np.diff(chi2.cdf([lo, hi], *par))[0]
+        assert_allclose(got, expected, rtol=1e-9, atol=1e-15)
+    assert_allclose(chi2.integrate(-np.inf, np.inf, *par), 1)
+
+
+def test_integrate_tail():
+    got = chi2.integrate(60, 70, 3, 0, 1)
+    assert_allclose(got, sc.chi2.sf(60, 3) - sc.chi2.sf(70, 3), rtol=1e-10)
+
+
+@pytest.mark.filterwarnings("error")
+def test_integrate_njit():
+    @nb.njit
+    def test(lo, hi):
+        return chi2.integrate(lo, hi, 3.0, 1.0, 2.0)
+
+    expected = chi2.integrate(2.0, 5.0, 3.0, 1.0, 2.0)
+    assert_allclose(test(2.0, 5.0), expected)
