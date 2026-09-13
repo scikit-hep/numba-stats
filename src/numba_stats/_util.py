@@ -178,6 +178,8 @@ def _generate_wrappers(d: dict[str, Any]) -> None:
     if "_type_check" not in d:
         d["_type_check"] = _type_check
     d["_overload"] = overload
+    d["_np"] = np
+    d["_nb_types"] = nb.types
 
     doc_par = d["_doc_par"].strip() if "_doc_par" in d else None
 
@@ -243,12 +245,26 @@ def _ol_{fname}({args_with_types}):
     return {impl}.__wrapped__
 """
         else:
+            first, *rest = parameters
+            rest_args = ", ".join(rest)
             code = f"""
 def {fname}({args_with_types}):
     return _wrap({impl})({args})
 
 @_overload({fname}, inline="always")
 def _ol_{fname}({args_with_types}):
+    if isinstance({first}, (_nb_types.Float, _nb_types.Integer)):
+        # scalar variate: evaluate on an array of length 1 and return the element
+        T = {first} if isinstance({first}, _nb_types.Float) else _nb_types.float64
+        _type_check(_nb_types.Array(T, 1, "C"), {rest_args})
+        dt = _np.float32 if T == _nb_types.float32 else _np.float64
+
+        def impl({args_with_types}):
+            _arr = _np.empty(1, dt)
+            _arr[0] = {first}
+            return {impl}(_arr, {rest_args})[0]
+
+        return impl
     _type_check({args})
     return {impl}.__wrapped__
 """

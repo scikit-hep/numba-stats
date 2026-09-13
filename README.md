@@ -90,7 +90,7 @@ Note that this is only faster if `x` has sufficient length (about 1000 elements 
 
 ##### TypingErrors
 
-When you use the numba-stats distributions in a compiled function, you need to pass the expected data types. The first argument must be numpy array of floats (32 or 64 bit). The following parameters must be floats. If you pass the wrong arguments, you will get numba errors similar to this one (where parameters were passed as integer instead of float):
+When you use the numba-stats distributions in a compiled function, you need to pass the expected data types. The first argument must be numpy array of floats (32 or 64 bit). The following parameters must be floats. A scalar is also accepted as the first argument and returns a scalar, but each such call allocates a temporary array, which makes it about 20 times slower per element than a call with an array. Use arrays in hot loops. If you pass the wrong arguments, you will get numba errors similar to this one (where parameters were passed as integer instead of float):
 
 ```
 numba.core.errors.TypingError: Failed in nopython mode pipeline (step: nopython frontend)
