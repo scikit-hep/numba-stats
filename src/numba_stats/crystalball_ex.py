@@ -215,4 +215,65 @@ def _ppf(
     return r
 
 
+@_jit_pointwise(8)
+def _cdf_unnorm1(
+    x: float,
+    beta_left: float,
+    m_left: float,
+    scale_left: float,
+    beta_right: float,
+    m_right: float,
+    scale_right: float,
+    loc: float,
+) -> float:
+    # integral of the unnormalized density from -inf to x
+    T = type(x)
+    if x < loc:
+        z = (x - loc) / scale_left
+        if z < -beta_left:
+            return _powerlaw_integral(z, beta_left, m_left) * scale_left
+        return (
+            _powerlaw_integral(-beta_left, beta_left, m_left)
+            + _normal_integral(-beta_left, z)
+        ) * scale_left
+    z = (x - loc) / scale_right
+    left = _norm_half(beta_left, m_left, scale_left)
+    if z < beta_right:
+        return left + _normal_integral(T(0), z) * scale_right
+    return (
+        left
+        + (
+            _normal_integral(T(0), beta_right)
+            + _powerlaw_integral(-beta_right, beta_right, m_right)
+            - _powerlaw_integral(-z, beta_right, m_right)
+        )
+        * scale_right
+    )
+
+
+@_jit_pointwise(9)
+def _integrate(
+    lo: float,
+    hi: float,
+    beta_left: float,
+    m_left: float,
+    scale_left: float,
+    beta_right: float,
+    m_right: float,
+    scale_right: float,
+    loc: float,
+) -> float:
+    norm = _norm_half(beta_left, m_left, scale_left) + _norm_half(
+        beta_right, m_right, scale_right
+    )
+    return (
+        _cdf_unnorm1(
+            hi, beta_left, m_left, scale_left, beta_right, m_right, scale_right, loc
+        )
+        - _cdf_unnorm1(
+            lo, beta_left, m_left, scale_left, beta_right, m_right, scale_right, loc
+        )
+    ) / norm
+
+
 _generate_wrappers(globals())

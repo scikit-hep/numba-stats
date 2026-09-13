@@ -75,3 +75,49 @@ def test_rvs_njit():
         return norm.rvs(0.0, 1.0, 10, 1)
 
     assert_allclose(test(), norm.rvs(0, 1, 10, 1))
+
+
+def test_integrate():
+    par = 1, 2
+    for lo, hi in ((-3.0, 4.0), (0.5, 0.7), (4.0, -3.0), (-100.0, 100.0), (2.5, 6.0)):
+        got = norm.integrate(lo, hi, *par)
+        assert isinstance(got, float)
+        expected = np.diff(norm.cdf([lo, hi], *par))[0]
+        assert_allclose(got, expected, rtol=1e-9, atol=1e-15)
+    assert_allclose(norm.integrate(-np.inf, np.inf, *par), 1)
+
+
+def test_integrate_tail():
+    # cdf(hi) - cdf(lo) loses relative precision in the tails, integrate does not
+    got = norm.integrate(7, 8, 0, 1)
+    assert_allclose(got, sc.norm.sf(7) - sc.norm.sf(8), rtol=1e-10)
+    got = norm.integrate(-8, -7, 0, 1)
+    assert_allclose(got, sc.norm.cdf(-7) - sc.norm.cdf(-8), rtol=1e-10)
+
+
+def test_integrate_doc():
+    assert "lo : float" in norm.integrate.__doc__
+    assert "Integral of the density" in norm.integrate.__doc__
+
+
+@pytest.mark.filterwarnings("error")
+def test_integrate_njit():
+    @nb.njit
+    def test(lo, hi):
+        return norm.integrate(lo, hi, 1.0, 2.0)
+
+    expected = norm.integrate(-1.0, 1.5, 1.0, 2.0)
+    assert_allclose(test(-1.0, 1.5), expected)
+    # integer limits are accepted in compiled code
+    assert_allclose(test(-1, 1), norm.integrate(-1, 1, 1.0, 2.0))
+
+
+@pytest.mark.filterwarnings("error")
+def test_integrate_njit_float32():
+    @nb.njit
+    def test(lo, hi):
+        return norm.integrate(lo, hi, np.float32(1), np.float32(2))
+
+    got = test(np.float32(-1), np.float32(1.5))
+    assert isinstance(got, float)
+    assert_allclose(got, norm.integrate(-1, 1.5, 1, 2), rtol=1e-6)

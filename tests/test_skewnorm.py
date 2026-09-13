@@ -83,3 +83,30 @@ def test_rvs_njit():
         return skewnorm.rvs(2.0, 0.0, 1.0, 10, 1)
 
     assert_allclose(test(), skewnorm.rvs(2, 0, 1, 10, 1))
+
+
+@pytest.mark.parametrize("a", (-3.0, 0.0, 3.0))
+def test_integrate(a):
+    par = a, 1, 2
+    for lo, hi in ((-3.0, 4.0), (0.5, 0.7), (4.0, -3.0), (-100.0, 100.0), (2.5, 6.0)):
+        got = skewnorm.integrate(lo, hi, *par)
+        expected = np.diff(skewnorm.cdf([lo, hi], *par))[0]
+        assert_allclose(got, expected, rtol=1e-9, atol=1e-15)
+    assert_allclose(skewnorm.integrate(-np.inf, np.inf, *par), 1)
+
+
+def test_integrate_tail():
+    # heavy tail of the skew-normal, the mirror image is its light tail
+    got = skewnorm.integrate(7, 8, 3, 0, 1)
+    expected = sc.skewnorm.cdf(-7, -3) - sc.skewnorm.cdf(-8, -3)
+    assert_allclose(got, expected, rtol=1e-10)
+
+
+@pytest.mark.filterwarnings("error")
+def test_integrate_njit():
+    @nb.njit
+    def test(lo, hi):
+        return skewnorm.integrate(lo, hi, 3.0, 1.0, 2.0)
+
+    expected = skewnorm.integrate(-1.0, 1.5, 3.0, 1.0, 2.0)
+    assert_allclose(test(-1.0, 1.5), expected)

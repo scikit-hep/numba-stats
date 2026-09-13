@@ -46,7 +46,21 @@ def test_integral_2(beta):
 
 
 @pytest.mark.filterwarnings("error")
-@pytest.mark.parametrize("parallel", (False, True))
+@pytest.mark.parametrize(
+    "parallel",
+    (
+        False,
+        pytest.param(
+            True,
+            marks=pytest.mark.thread_unsafe(
+                reason=(
+                    "Numba parallel regions in this test are not safe under "
+                    "concurrent pytest threads with the workqueue threading layer"
+                )
+            ),
+        ),
+    ),
+)
 @pytest.mark.parametrize("fn", [bernstein.density, bernstein.integral])
 def test_numba(fn, parallel):
     x = np.linspace(0.5, 0.6, 10000)

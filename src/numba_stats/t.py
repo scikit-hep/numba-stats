@@ -12,7 +12,15 @@ import numpy as np
 
 from ._special import stdtr as _stdtr
 from ._special import stdtrit as _stdtrit
-from ._util import _generate_wrappers, _jit, _prange, _rvs_jit, _seed, _trans
+from ._util import (
+    _generate_wrappers,
+    _jit,
+    _jit_pointwise,
+    _prange,
+    _rvs_jit,
+    _seed,
+    _trans,
+)
 
 _doc_par = """
 df : float
@@ -70,6 +78,18 @@ def _rvs(
 ) -> np.ndarray:
     _seed(random_state)
     return loc + scale * np.random.standard_t(df, size)
+
+
+@_jit_pointwise(5, cache=False)
+def _integrate(lo: float, hi: float, df: float, loc: float, scale: float) -> float:
+    T = type(df)
+    inv_scale = T(1) / scale
+    za = (lo - loc) * inv_scale
+    zb = (hi - loc) * inv_scale
+    if za + zb > 0:
+        # the distribution is symmetric, use the survival function in the right tail
+        return T(_stdtr(df, -za)) - T(_stdtr(df, -zb))
+    return T(_stdtr(df, zb)) - T(_stdtr(df, za))
 
 
 _generate_wrappers(globals())
