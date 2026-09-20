@@ -11,16 +11,8 @@ from math import lgamma as _lgamma
 import numba as nb
 import numpy as np
 
-from ._special import gammainc as _gammainc
 from ._special import gammaincc as _gammaincc
-from ._util import (
-    _generate_wrappers,
-    _jit,
-    _jit_custom,
-    _jit_pointwise,
-    _prange,
-    _seed,
-)
+from ._util import _generate_wrappers, _jit, _jit_custom, _prange, _seed
 
 _doc_par = """
 mu : float
@@ -58,17 +50,6 @@ def _cdf(k: np.ndarray, mu: float) -> np.ndarray:
 def _rvs(mu: float, size: int, random_state: int | None) -> np.ndarray:
     _seed(random_state)
     return np.random.poisson(mu, size)
-
-
-@_jit_pointwise(3, cache=False)  # cannot cache because of _gammainc
-def _integrate(lo: float, hi: float, mu: float) -> float:
-    # probability of lo < k <= hi, equal to cdf(hi) - cdf(lo)
-    T = type(mu)
-    one = T(1)
-    if lo + hi > T(2) * mu:
-        # interval beyond the mean, use the lower incomplete gamma function
-        return T(_gammainc(lo + one, mu)) - T(_gammainc(hi + one, mu))
-    return T(_gammaincc(hi + one, mu)) - T(_gammaincc(lo + one, mu))
 
 
 _generate_wrappers(globals())

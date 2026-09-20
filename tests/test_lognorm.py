@@ -69,11 +69,6 @@ def test_integrate():
     assert_allclose(lognorm.integrate(-np.inf, np.inf, *par), 1)
 
 
-def test_integrate_tail():
-    got = lognorm.integrate(1e5, 2e5, 0.5, 0, 1)
-    assert_allclose(got, sc.lognorm.sf(1e5, 0.5) - sc.lognorm.sf(2e5, 0.5), rtol=1e-10)
-
-
 @pytest.mark.filterwarnings("error")
 def test_integrate_njit():
     @nb.njit

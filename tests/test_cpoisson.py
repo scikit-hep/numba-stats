@@ -2,7 +2,6 @@ import numba as nb
 import numpy as np
 import pytest
 from numpy.testing import assert_allclose
-from scipy.special import gammainc
 
 from numba_stats import cpoisson, poisson
 
@@ -21,14 +20,6 @@ def test_integrate(mu):
         got = cpoisson.integrate(lo, hi, mu)
         expected = np.diff(cpoisson.cdf([lo, hi], mu))[0]
         assert_allclose(got, expected, atol=1e-15)
-
-
-def test_integrate_tail():
-    # cdf(hi) - cdf(lo) loses relative precision here, the survival function of
-    # the continuous Poisson distribution is the lower incomplete gamma function
-    got = cpoisson.integrate(40.5, 50.5, 3)
-    expected = gammainc(41.5, 3) - gammainc(51.5, 3)
-    assert_allclose(got, expected, rtol=1e-10)
 
 
 @pytest.mark.filterwarnings("error")

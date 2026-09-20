@@ -17,12 +17,9 @@ been replaced with a single parameter "loc", which is the approximate center of 
 distribution.
 """
 
-from math import erf as _erf
-from math import erfc as _erfc
-
 import numpy as np
 
-from ._util import _erfc_inplace, _generate_wrappers, _jit, _jit_pointwise, _prange
+from ._util import _erf_inplace, _erfc_inplace, _generate_wrappers, _jit
 
 _doc_par = """
 beta : float
@@ -52,33 +49,18 @@ def _pdf(x: np.ndarray, beta: float, gamma: float, loc: float) -> np.ndarray:
     return np.exp(_logpdf(x, beta, gamma, loc))
 
 
-@_jit_pointwise(3)
-def _cdf1(y: float, beta: float, gamma: float) -> float:
-    T = type(y)
-    two = T(2)
-    half = T(0.5)
-    g2b = gamma / (two * beta)
-    return (  # type:ignore[no-any-return]
-        half
-        * (
-            T(_erf(g2b + beta * y))
-            - np.exp(-g2b * g2b - gamma * y) * T(_erfc(-beta * y))
-        )
-        + half
-    )
-
-
 @_jit(3)
 def _cdf(x: np.ndarray, beta: float, gamma: float, loc: float) -> np.ndarray:
-    r = np.empty_like(x)
-    for i in _prange(len(r)):
-        r[i] = _cdf1(x[i] - loc, beta, gamma)
-    return r
-
-
-@_jit_pointwise(5)
-def _integrate(lo: float, hi: float, beta: float, gamma: float, loc: float) -> float:
-    return _cdf1(hi - loc, beta, gamma) - _cdf1(lo - loc, beta, gamma)
+    T = type(beta)
+    y = x - loc
+    two = T(2)
+    half = T(0.5)
+    t1 = gamma / (two * beta) + beta * y
+    _erf_inplace(t1)
+    t2 = np.exp(-((gamma / (two * beta)) ** two) - gamma * y)
+    t3 = -beta * y
+    _erfc_inplace(t3)
+    return half * (t1 - t2 * t3) + half  # type:ignore[no-any-return]
 
 
 _generate_wrappers(globals())

@@ -57,7 +57,7 @@ The functions are vectorized over the variate `x`, but not over the shape parame
 - `cdf`: integral of the probability density function
 - `ppf`:inverse of the cdf
 - `rvs`: to generate random variates
-- `integrate`: integral of the probability density over an interval, more efficient and accurate than `cdf(hi) - cdf(lo)`; for discrete distributions it is the probability of `lo < k <= hi`; unlike the other functions, it takes scalars and returns a scalar
+- `integrate`: integral of the probability density over an interval, equal to `cdf(hi) - cdf(lo)` but much faster, since it avoids the overhead of the array interface; for discrete distributions it is the probability of `lo < k <= hi`; unlike the other functions, it takes scalars and returns a scalar
 
 `cdf` and `ppf` are missing for some distributions (e.g. `voigt`), if there is currently no fast implementation available. `logpdf` is only implemented if it is more efficient and accurate compared to computing `log(dist.pdf(...))`. `rvs` is only implemented for distributions that have `ppf`, which is used to generate the random variates. The implementations of `rvs` are currently not optimized for highest performance, but turn out to be useful in practice nevertheless.
 

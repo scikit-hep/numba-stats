@@ -107,10 +107,4 @@ def _rvs(
     return np.random.normal(loc, scale, size) + np.random.exponential(K * scale, size)
 
 
-@_jit_pointwise(5, cache=False)
-def _integrate(lo: float, hi: float, K: float, loc: float, scale: float) -> float:
-    inv_scale = type(scale)(1) / scale
-    return _cdf1((hi - loc) * inv_scale, K) - _cdf1((lo - loc) * inv_scale, K)
-
-
 _generate_wrappers(globals())

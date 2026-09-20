@@ -76,19 +76,4 @@ def _rvs(loc: float, scale: float, size: int, random_state: int | None) -> np.nd
     return loc + np.random.exponential(scale, size)
 
 
-@_jit_pointwise(2)
-def _integrate1(za: float, zb: float) -> float:
-    # exp(-za) - exp(-zb) without cancellation
-    T = type(za)
-    za = max(za, T(0))
-    zb = max(zb, T(0))
-    return -np.exp(-za) * T(_expm1(za - zb))  # type:ignore[no-any-return]
-
-
-@_jit_pointwise(4)
-def _integrate(lo: float, hi: float, loc: float, scale: float) -> float:
-    inv_scale = type(scale)(1) / scale
-    return _integrate1((lo - loc) * inv_scale, (hi - loc) * inv_scale)
-
-
 _generate_wrappers(globals())

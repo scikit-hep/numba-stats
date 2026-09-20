@@ -120,30 +120,4 @@ def _rvs(
     return _ppf(p, lambd, loc, scale)
 
 
-@_jit_pointwise(3)
-def _erfc_arg(z: float, lambd: float, s: float) -> float:
-    # argument of erfc in the cdf, infinite beyond the edge of the support
-    T = type(z)
-    u = -lambd * z
-    if u <= -1:
-        return -T(np.inf) if lambd > 0 else T(np.inf)
-    return (T(_log1p(u)) / s - s) * T(np.sqrt(0.5))
-
-
-@_jit_pointwise(5)
-def _integrate(lo: float, hi: float, lambd: float, loc: float, scale: float) -> float:
-    if lambd == 0:
-        return _norm._integrate(lo, hi, loc, scale)
-    T = type(lambd)
-    half = T(0.5)
-    s = _width_zero(lambd)
-    inv_scale = T(1) / scale
-    va = _erfc_arg((lo - loc) * inv_scale, lambd, s)
-    vb = _erfc_arg((hi - loc) * inv_scale, lambd, s)
-    # cdf = erfc(v) / 2, use the form without cancellation on the side of the interval
-    if va + vb < 0:
-        return half * (T(_erfc(-va)) - T(_erfc(-vb)))
-    return half * (T(_erfc(vb)) - T(_erfc(va)))
-
-
 _generate_wrappers(globals())

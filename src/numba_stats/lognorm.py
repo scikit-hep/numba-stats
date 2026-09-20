@@ -9,15 +9,7 @@ scipy.stats.lognorm: Scipy equivalent.
 import numpy as np
 
 from . import norm as _norm
-from ._util import (
-    _generate_wrappers,
-    _jit,
-    _jit_pointwise,
-    _prange,
-    _rvs_jit,
-    _seed,
-    _trans,
-)
+from ._util import _generate_wrappers, _jit, _prange, _rvs_jit, _seed, _trans
 
 _doc_par = """
 s : float
@@ -73,17 +65,6 @@ def _rvs(
 ) -> np.ndarray:
     _seed(random_state)
     return loc + scale * np.random.lognormal(0, s, size)
-
-
-@_jit_pointwise(5)
-def _integrate(lo: float, hi: float, s: float, loc: float, scale: float) -> float:
-    T = type(s)
-    inv_scale = T(1) / scale
-    za = (lo - loc) * inv_scale
-    zb = (hi - loc) * inv_scale
-    ua = np.log(za) / s if za > 0 else -T(np.inf)
-    ub = np.log(zb) / s if zb > 0 else -T(np.inf)
-    return _norm._integrate1(ua, ub)
 
 
 _generate_wrappers(globals())

@@ -168,6 +168,7 @@ def _integrate(
     --------
     scipy.interpolate.BPoly
     """
+    # beta is an array, so the generic implementation cannot be used
     x = np.empty(2, beta.dtype)
     x[0] = lo
     x[1] = hi
@@ -224,9 +225,7 @@ def _type_check_scalar(lo: Any, hi: Any, beta: Any, xmin: Any, xmax: Any) -> Any
         if isinstance(tp, Integer):
             cast = True
         elif tp != T:
-            raise TypingError(
-                "lo and hi must be integers or have the same type as beta"
-            )
+            raise TypingError("lo and hi must be integers or of the type of beta")
     if cast:
         return np.float32 if T == float32 else np.float64
     return None

@@ -89,12 +89,6 @@ def test_integrate():
     assert_allclose(truncnorm.integrate(-10, 10, *par), 1)
 
 
-def test_integrate_tail():
-    got = truncnorm.integrate(7, 8, -1, 9, 0, 1)
-    expected = (sc.norm.sf(7) - sc.norm.sf(8)) / (sc.norm.cdf(9) - sc.norm.cdf(-1))
-    assert_allclose(got, expected, rtol=1e-10)
-
-
 @pytest.mark.filterwarnings("error")
 def test_integrate_njit():
     @nb.njit

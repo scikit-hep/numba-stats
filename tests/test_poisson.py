@@ -45,11 +45,6 @@ def test_integrate(mu):
         assert_allclose(got, np.diff(poisson.cdf([lo, hi], mu))[0], atol=1e-15)
 
 
-def test_integrate_tail():
-    got = poisson.integrate(40, 50, 3)
-    assert_allclose(got, sc.poisson.sf(40, 3) - sc.poisson.sf(50, 3), rtol=1e-10)
-
-
 @pytest.mark.filterwarnings("error")
 def test_integrate_njit():
     @nb.njit

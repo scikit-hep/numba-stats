@@ -11,7 +11,6 @@ from math import lgamma as _lgamma
 import numpy as np
 
 from ._special import gammainc as _gammainc
-from ._special import gammaincc as _gammaincc
 from ._special import gammaincinv as _gammaincinv
 from ._special import xlogy as _xlogy
 from ._util import (
@@ -99,20 +98,6 @@ def _rvs(
 ) -> np.ndarray:
     _seed(random_state)
     return loc + scale * np.random.chisquare(df, size)
-
-
-@_jit_pointwise(5, cache=False)
-def _integrate(lo: float, hi: float, df: float, loc: float, scale: float) -> float:
-    T = type(df)
-    half = T(0.5)
-    inv_scale = T(1) / scale
-    za = max((lo - loc) * inv_scale, T(0))
-    zb = max((hi - loc) * inv_scale, T(0))
-    k = half * df
-    if za + zb > T(2) * df:
-        # interval beyond the mean, use the upper incomplete gamma function
-        return T(_gammaincc(k, half * za)) - T(_gammaincc(k, half * zb))
-    return T(_gammainc(k, half * zb)) - T(_gammainc(k, half * za))
 
 
 _generate_wrappers(globals())

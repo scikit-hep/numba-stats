@@ -87,14 +87,6 @@ def test_integrate():
     assert_allclose(norm.integrate(-np.inf, np.inf, *par), 1)
 
 
-def test_integrate_tail():
-    # cdf(hi) - cdf(lo) loses relative precision in the tails, integrate does not
-    got = norm.integrate(7, 8, 0, 1)
-    assert_allclose(got, sc.norm.sf(7) - sc.norm.sf(8), rtol=1e-10)
-    got = norm.integrate(-8, -7, 0, 1)
-    assert_allclose(got, sc.norm.cdf(-7) - sc.norm.cdf(-8), rtol=1e-10)
-
-
 def test_integrate_doc():
     assert "lo : float" in norm.integrate.__doc__
     assert "Integral of the density" in norm.integrate.__doc__

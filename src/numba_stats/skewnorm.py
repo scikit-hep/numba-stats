@@ -97,15 +97,4 @@ def _rvs(
     return loc + scale * np.where(u0 >= 0, u1, -u1)  # type:ignore[no-any-return]
 
 
-@_jit_pointwise(5, cache=False)
-def _integrate(lo: float, hi: float, a: float, loc: float, scale: float) -> float:
-    inv_scale = type(scale)(1) / scale
-    za = (lo - loc) * inv_scale
-    zb = (hi - loc) * inv_scale
-    if za + zb > 0:
-        # survival function of the skew-normal: sf(z, a) = cdf(-z, -a)
-        return _cdf1(-za, -a) - _cdf1(-zb, -a)
-    return _cdf1(zb, a) - _cdf1(za, a)
-
-
 _generate_wrappers(globals())

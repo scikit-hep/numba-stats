@@ -79,14 +79,6 @@ def test_integrate():
     assert_allclose(cb.integrate(-np.inf, np.inf, *par), 1)
 
 
-def test_integrate_tail():
-    got = cb.integrate(7, 8, 1, 3, 0, 1)
-    expected = (
-        (sc.norm.sf(7) - sc.norm.sf(8)) * np.sqrt(2 * np.pi) * cb.pdf(0, 1, 3, 0, 1)
-    )
-    assert_allclose(got, expected, rtol=1e-10)
-
-
 @pytest.mark.filterwarnings("error")
 def test_integrate_njit():
     @nb.njit

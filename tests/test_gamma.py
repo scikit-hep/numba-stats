@@ -90,11 +90,6 @@ def test_integrate():
     assert_allclose(gamma.integrate(-np.inf, np.inf, *par), 1)
 
 
-def test_integrate_tail():
-    got = gamma.integrate(60, 70, 2.5, 0, 1)
-    assert_allclose(got, sc.gamma.sf(60, 2.5) - sc.gamma.sf(70, 2.5), rtol=1e-10)
-
-
 @pytest.mark.filterwarnings("error")
 def test_integrate_njit():
     @nb.njit

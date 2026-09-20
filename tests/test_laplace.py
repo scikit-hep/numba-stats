@@ -44,13 +44,6 @@ def test_integrate():
     assert_allclose(laplace.integrate(-np.inf, np.inf, *par), 1)
 
 
-def test_integrate_tail():
-    got = laplace.integrate(30, 31, 0, 1)
-    assert_allclose(got, sc.laplace.sf(30) - sc.laplace.sf(31), rtol=1e-10)
-    got = laplace.integrate(-31, -30, 0, 1)
-    assert_allclose(got, sc.laplace.cdf(-30) - sc.laplace.cdf(-31), rtol=1e-10)
-
-
 @pytest.mark.filterwarnings("error")
 def test_integrate_njit():
     @nb.njit

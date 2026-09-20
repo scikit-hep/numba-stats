@@ -13,7 +13,7 @@ scipy.stats.exponnorm: Scipy equivalent of the untruncated distribution.
 import numpy as np
 
 from . import exponnorm as _exponnorm
-from ._util import _generate_wrappers, _jit, _jit_pointwise, _prange
+from ._util import _generate_wrappers, _jit, _prange
 
 _doc_par = """
 xmin : float
@@ -76,20 +76,6 @@ def _cdf(
         else:
             z[i] = T(0)
     return z
-
-
-@_jit_pointwise(7, cache=False)
-def _integrate(
-    lo: float, hi: float, xmin: float, xmax: float, K: float, loc: float, scale: float
-) -> float:
-    inv_scale = type(scale)(1) / scale
-    zmin = (xmin - loc) * inv_scale
-    zmax = (xmax - loc) * inv_scale
-    za = min(max((lo - loc) * inv_scale, zmin), zmax)
-    zb = min(max((hi - loc) * inv_scale, zmin), zmax)
-    return (_exponnorm._cdf1(zb, K) - _exponnorm._cdf1(za, K)) / (
-        _exponnorm._cdf1(zmax, K) - _exponnorm._cdf1(zmin, K)
-    )
 
 
 _generate_wrappers(globals())

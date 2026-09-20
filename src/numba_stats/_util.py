@@ -149,6 +149,12 @@ def _trans(x: np.ndarray, loc: float, scale: float) -> np.ndarray:
 
 
 @nb.njit(cache=True, inline="always", error_model="numpy")  # type:ignore[untyped-decorator]
+def _erf_inplace(x: np.ndarray) -> None:
+    for i in _prange(len(x)):
+        x[i] = math.erf(x[i])
+
+
+@nb.njit(cache=True, inline="always", error_model="numpy")  # type:ignore[untyped-decorator]
 def _erfc_inplace(x: np.ndarray) -> None:
     for i in _prange(len(x)):
         x[i] = math.erfc(x[i])
@@ -200,6 +206,30 @@ def _generate_wrappers(d: dict[str, Any]) -> None:
     d["_overload"] = overload
 
     doc_par = d["_doc_par"].strip() if "_doc_par" in d else None
+
+    # integrate is the difference of the cumulative function at the two limits,
+    # computed in compiled code to avoid the overhead of the array interface
+    src = "_cdf" if "_cdf" in d else "_integral"
+    if src in d and "_integrate" not in d:
+        _, *rest = inspect.signature(d[src]).parameters.values()
+        # distributions with array parameters have to implement _integrate
+        if all(p.annotation is float for p in rest):
+            d["_np"] = np
+            d["_jit_pointwise"] = _jit_pointwise
+            names = ", ".join(p.name for p in rest)
+            names_with_types = ", ".join(f"{p.name}: float" for p in rest)
+            exec(
+                f"""
+@_jit_pointwise({len(rest) + 2}, cache=False)
+def _integrate(lo: float, hi: float, {names_with_types}) -> float:
+    _x = _np.empty(2, type(lo))
+    _x[0] = lo
+    _x[1] = hi
+    _r = {src}(_x, {names})
+    return _r[1] - _r[0]
+""",
+                d,
+            )
 
     for fname in (
         "pdf",

@@ -95,13 +95,6 @@ def test_integrate(a):
     assert_allclose(skewnorm.integrate(-np.inf, np.inf, *par), 1)
 
 
-def test_integrate_tail():
-    # heavy tail of the skew-normal, the mirror image is its light tail
-    got = skewnorm.integrate(7, 8, 3, 0, 1)
-    expected = sc.skewnorm.cdf(-7, -3) - sc.skewnorm.cdf(-8, -3)
-    assert_allclose(got, expected, rtol=1e-10)
-
-
 @pytest.mark.filterwarnings("error")
 def test_integrate_njit():
     @nb.njit

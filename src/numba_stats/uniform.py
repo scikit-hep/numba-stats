@@ -8,7 +8,7 @@ scipy.stats.uniform: Equivalent in Scipy.
 
 import numpy as np
 
-from ._util import _generate_wrappers, _jit, _jit_pointwise, _prange, _rvs_jit, _seed
+from ._util import _generate_wrappers, _jit, _prange, _rvs_jit, _seed
 
 _doc_par = """
 a : float
@@ -57,12 +57,6 @@ def _ppf(p: np.ndarray, a: float, w: float) -> np.ndarray:
 def _rvs(a: float, w: float, size: int, random_state: int | None) -> np.ndarray:
     _seed(random_state)
     return np.random.uniform(a, a + w, size)
-
-
-@_jit_pointwise(4)
-def _integrate(lo: float, hi: float, a: float, w: float) -> float:
-    b = a + w
-    return (min(max(hi, a), b) - min(max(lo, a), b)) / w
 
 
 _generate_wrappers(globals())

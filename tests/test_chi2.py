@@ -90,11 +90,6 @@ def test_integrate():
     assert_allclose(chi2.integrate(-np.inf, np.inf, *par), 1)
 
 
-def test_integrate_tail():
-    got = chi2.integrate(60, 70, 3, 0, 1)
-    assert_allclose(got, sc.chi2.sf(60, 3) - sc.chi2.sf(70, 3), rtol=1e-10)
-
-
 @pytest.mark.filterwarnings("error")
 def test_integrate_njit():
     @nb.njit

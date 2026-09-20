@@ -23,7 +23,6 @@ this library.
 from math import gamma as _gamma
 from math import lgamma as _lgamma
 
-import numba as nb
 import numpy as np
 
 from ._special import hyp2f1 as _hyp2f1
@@ -212,16 +211,22 @@ def _density(
     return r
 
 
-@nb.njit(error_model="numpy")  # type:ignore[untyped-decorator]
-def _integral_constants(
+@_jit(9, cache=False)
+def _integral(
+    x: np.ndarray,
     lambd: float,
+    zeta: float,
+    beta: float,
     a_left: float,
     n_left: float,
     a_right: float,
     n_right: float,
+    loc: float,
     scale: float,
-) -> tuple[float, float, float, float, float, float, float, float]:
-    # constants of the antiderivative for zeta == 0 and beta == 0
+) -> np.ndarray:
+    if zeta != 0 or beta != 0 or lambd >= 0:
+        raise ValueError("integral requires zeta == 0, beta == 0, and lambd < 0")
+
     T = type(lambd)
     one = T(1)
     half = T(0.5)
@@ -249,76 +254,19 @@ def _integral_constants(
     c_right = _core_integral(s_right, lambd, delta) - k_right * (b_right + s_right) ** (
         one - n_right
     ) / (one - n_right)
-    return s_left, s_right, k_left, b_left, c_left, k_right, b_right, c_right
 
-
-@nb.njit(error_model="numpy")  # type:ignore[untyped-decorator]
-def _integral1(
-    d: float,
-    lambd: float,
-    n_left: float,
-    n_right: float,
-    delta: float,
-    c: tuple[float, float, float, float, float, float, float, float],
-) -> float:
-    # antiderivative of the density at distance d from the mode, zero at the mode
-    s_left, s_right, k_left, b_left, c_left, k_right, b_right, c_right = c
-    one = type(d)(1)
-    if d < -s_left:
-        return (  # type:ignore[no-any-return]
-            k_left * (b_left - d) ** (one - n_left) / (n_left - one) + c_left
-        )
-    if d > s_right:
-        return (  # type:ignore[no-any-return]
-            k_right * (b_right + d) ** (one - n_right) / (one - n_right) + c_right
-        )
-    return _core_integral(d, lambd, delta)
-
-
-@_jit(9, cache=False)
-def _integral(
-    x: np.ndarray,
-    lambd: float,
-    zeta: float,
-    beta: float,
-    a_left: float,
-    n_left: float,
-    a_right: float,
-    n_right: float,
-    loc: float,
-    scale: float,
-) -> np.ndarray:
-    if zeta != 0 or beta != 0 or lambd >= 0:
-        raise ValueError("integral requires zeta == 0, beta == 0, and lambd < 0")
-
-    c = _integral_constants(lambd, a_left, n_left, a_right, n_right, scale)
     r = np.empty_like(x)
     for i in _prange(len(r)):
-        r[i] = _integral1(x[i] - loc, lambd, n_left, n_right, scale, c)
+        d = x[i] - loc
+        if d < -s_left:
+            r[i] = k_left * (b_left - d) ** (one - n_left) / (n_left - one) + c_left
+        elif d > s_right:
+            r[i] = (
+                k_right * (b_right + d) ** (one - n_right) / (one - n_right) + c_right
+            )
+        else:
+            r[i] = _core_integral(d, lambd, delta)
     return r
-
-
-@_jit_pointwise(11, cache=False)
-def _integrate(
-    lo: float,
-    hi: float,
-    lambd: float,
-    zeta: float,
-    beta: float,
-    a_left: float,
-    n_left: float,
-    a_right: float,
-    n_right: float,
-    loc: float,
-    scale: float,
-) -> float:
-    if zeta != 0 or beta != 0 or lambd >= 0:
-        raise ValueError("integrate requires zeta == 0, beta == 0, and lambd < 0")
-
-    c = _integral_constants(lambd, a_left, n_left, a_right, n_right, scale)
-    return _integral1(  # type:ignore[no-any-return]
-        hi - loc, lambd, n_left, n_right, scale, c
-    ) - _integral1(lo - loc, lambd, n_left, n_right, scale, c)
 
 
 _generate_wrappers(globals())

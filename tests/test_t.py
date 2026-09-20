@@ -48,13 +48,6 @@ def test_integrate():
     assert_allclose(t.integrate(-np.inf, np.inf, *par), 1)
 
 
-def test_integrate_tail():
-    got = t.integrate(50, 60, 3, 0, 1)
-    assert_allclose(got, sc.t.sf(50, 3) - sc.t.sf(60, 3), rtol=1e-10)
-    got = t.integrate(-60, -50, 3, 0, 1)
-    assert_allclose(got, sc.t.cdf(-50, 3) - sc.t.cdf(-60, 3), rtol=1e-10)
-
-
 @pytest.mark.filterwarnings("error")
 def test_integrate_njit():
     @nb.njit

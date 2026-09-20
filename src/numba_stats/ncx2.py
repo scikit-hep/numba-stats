@@ -114,12 +114,4 @@ def _rvs(
     return loc + scale * np.random.noncentral_chisquare(df, nc, size)
 
 
-@_jit_pointwise(6, cache=False)
-def _integrate(
-    lo: float, hi: float, df: float, nc: float, loc: float, scale: float
-) -> float:
-    inv_scale = type(scale)(1) / scale
-    return _cdf1((hi - loc) * inv_scale, df, nc) - _cdf1((lo - loc) * inv_scale, df, nc)
-
-
 _generate_wrappers(globals())

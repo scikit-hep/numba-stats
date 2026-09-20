@@ -19,9 +19,8 @@ There is a Meijer G-function implemented in mpmath, but I don't know how to use 
 
 import numpy as np
 
-from ._special import gammainc as _gammainc
 from ._special import gammaincc as _gammaincc
-from ._util import _generate_wrappers, _jit, _jit_pointwise, _prange
+from ._util import _generate_wrappers, _jit, _prange
 
 _doc_par = """
 mu : float
@@ -36,16 +35,6 @@ def _cdf(x: np.ndarray, mu: float) -> np.ndarray:
     for i in _prange(len(x)):
         r[i] = _gammaincc(x[i] + one, mu)
     return r
-
-
-@_jit_pointwise(3, cache=False)  # cannot cache because of _gammainc
-def _integrate(lo: float, hi: float, mu: float) -> float:
-    T = type(mu)
-    one = T(1)
-    if lo + hi > T(2) * mu:
-        # interval beyond the mean, use the lower incomplete gamma function
-        return T(_gammainc(lo + one, mu)) - T(_gammainc(hi + one, mu))
-    return T(_gammaincc(hi + one, mu)) - T(_gammaincc(lo + one, mu))
 
 
 _generate_wrappers(globals())

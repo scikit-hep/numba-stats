@@ -132,27 +132,4 @@ def _ppf(p: np.ndarray, beta: float, m: float, loc: float, scale: float) -> np.n
     return scale * r + loc
 
 
-@_jit_pointwise(3)
-def _cdf_unnorm1(z: float, beta: float, m: float) -> float:
-    # integral of the unnormalized density from -inf to z
-    if z < -beta:
-        return _powerlaw_integral(z, beta, m)
-    return _powerlaw_integral(-beta, beta, m) + _normal_integral(-beta, z)
-
-
-@_jit_pointwise(6)
-def _integrate(
-    lo: float, hi: float, beta: float, m: float, loc: float, scale: float
-) -> float:
-    T = type(beta)
-    inv_scale = T(1) / scale
-    za = (lo - loc) * inv_scale
-    zb = (hi - loc) * inv_scale
-    norm = _powerlaw_integral(-beta, beta, m) + _normal_integral(-beta, T(np.inf))
-    if za >= -beta and zb >= -beta:
-        # both in the normal part, retain precision in the right tail
-        return T(np.sqrt(2 * np.pi)) * _norm._integrate1(za, zb) / norm
-    return (_cdf_unnorm1(zb, beta, m) - _cdf_unnorm1(za, beta, m)) / norm
-
-
 _generate_wrappers(globals())

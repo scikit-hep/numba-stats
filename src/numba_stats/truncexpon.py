@@ -9,15 +9,7 @@ scipy.stats.truncexpon: Scipy equivalent.
 import numpy as np
 
 from . import expon as _expon
-from ._util import (
-    _generate_wrappers,
-    _jit,
-    _jit_pointwise,
-    _prange,
-    _rvs_jit,
-    _seed,
-    _trans,
-)
+from ._util import _generate_wrappers, _jit, _prange, _rvs_jit, _seed, _trans
 
 _doc_par = """
 xmin : float
@@ -107,18 +99,6 @@ def _rvs(
     _seed(random_state)
     p = np.random.uniform(0, 1, size)
     return _ppf(p, xmin, xmax, loc, scale)
-
-
-@_jit_pointwise(6)
-def _integrate(
-    lo: float, hi: float, xmin: float, xmax: float, loc: float, scale: float
-) -> float:
-    inv_scale = type(scale)(1) / scale
-    zmin = (xmin - loc) * inv_scale
-    zmax = (xmax - loc) * inv_scale
-    za = min(max((lo - loc) * inv_scale, zmin), zmax)
-    zb = min(max((hi - loc) * inv_scale, zmin), zmax)
-    return _expon._integrate1(za, zb) / _expon._integrate1(zmin, zmax)
 
 
 _generate_wrappers(globals())

@@ -15,7 +15,7 @@ import numpy as np
 
 from . import norm as _norm
 from . import t as _t
-from ._util import _generate_wrappers, _jit, _jit_pointwise, _rvs_jit
+from ._util import _generate_wrappers, _jit, _rvs_jit
 
 _doc_par = """
 q : float
@@ -100,16 +100,6 @@ def _rvs(
     df, sigma = _df_sigma(q, sigma)
 
     return _t._rvs(df, mu, sigma, size, random_state)
-
-
-@_jit_pointwise(5, cache=False)
-def _integrate(lo: float, hi: float, q: float, mu: float, sigma: float) -> float:
-    if q < 1 or q > 3:
-        raise ValueError("q < 1 or q > 3 are not supported")
-    if q == 1:
-        return _norm._integrate(lo, hi, mu, sigma)
-    df, sigma = _df_sigma(q, sigma)
-    return _t._integrate(lo, hi, df, mu, sigma)
 
 
 _generate_wrappers(globals())
