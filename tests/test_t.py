@@ -1,6 +1,8 @@
+import numba as nb
 import numpy as np
 import pytest
 import scipy.stats as sc
+from numpy.testing import assert_allclose
 
 from numba_stats import t
 
@@ -35,3 +37,22 @@ def test_rvs(df):
     x = t.rvs(*args, size=100_000, random_state=1)
     r = sc.kstest(x, lambda x: t.cdf(x, *args))
     assert r.pvalue > 0.01
+
+
+def test_integrate():
+    par = 3, 1, 2
+    for lo, hi in ((-3.0, 4.0), (0.5, 0.7), (4.0, -3.0), (-100.0, 100.0), (2.5, 6.0)):
+        got = t.integrate(lo, hi, *par)
+        expected = np.diff(t.cdf([lo, hi], *par))[0]
+        assert_allclose(got, expected, rtol=1e-9, atol=1e-15)
+    assert_allclose(t.integrate(-np.inf, np.inf, *par), 1)
+
+
+@pytest.mark.filterwarnings("error")
+def test_integrate_njit():
+    @nb.njit
+    def test(lo, hi):
+        return t.integrate(lo, hi, 3.0, 1.0, 2.0)
+
+    expected = t.integrate(-1.0, 1.5, 3.0, 1.0, 2.0)
+    assert_allclose(test(-1.0, 1.5), expected)
