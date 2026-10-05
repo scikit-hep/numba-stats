@@ -170,6 +170,29 @@ def _type_check(first: Array, *rest: Any) -> None:
             raise TypingError(f"argument {i + 1} must be of type {tp}")
 
 
+def _type_check_scalar(lo: Any, hi: Any, *rest: Any) -> Any:
+    # parameters must be floats of the same type, lo and hi may also be integers, in
+    # which case the numpy type to cast them to is returned
+    T = rest[0]
+    for tp in rest:
+        if tp != T or not isinstance(T, nb.types.Float):
+            raise TypingError("parameters must be floats of the same type")
+    cast = False
+    for tp in (lo, hi):
+        if isinstance(tp, nb.types.Integer):
+            cast = True
+        elif tp != T:
+            raise TypingError("lo and hi must be integers or floats of parameter type")
+    if cast:
+        return np.float32 if T == nb.types.float32 else np.float64
+    return None
+
+
+def _asarray(x: Any) -> np.ndarray:
+    x = np.asarray(x)
+    return x if x.dtype.kind == "f" else x.astype(float)
+
+
 def _generate_wrappers(d: dict[str, Any]) -> None:
     import inspect
 
@@ -177,11 +200,38 @@ def _generate_wrappers(d: dict[str, Any]) -> None:
         d["_wrap"] = _wrap
     if "_type_check" not in d:
         d["_type_check"] = _type_check
+    if "_type_check_scalar" not in d:
+        d["_type_check_scalar"] = _type_check_scalar
+    d["_asarray"] = _asarray
     d["_overload"] = overload
     d["_np"] = np
     d["_nb_types"] = nb.types
 
     doc_par = d["_doc_par"].strip() if "_doc_par" in d else None
+
+    # integrate is the difference of the cumulative function at the two limits,
+    # computed in compiled code to avoid the overhead of the array interface
+    src = "_cdf" if "_cdf" in d else "_integral"
+    if src in d and "_integrate" not in d:
+        _, *rest = inspect.signature(d[src]).parameters.values()
+        # distributions with array parameters have to implement _integrate
+        if all(p.annotation is float for p in rest):
+            d["_np"] = np
+            d["_jit_pointwise"] = _jit_pointwise
+            names = ", ".join(p.name for p in rest)
+            names_with_types = ", ".join(f"{p.name}: float" for p in rest)
+            exec(
+                f"""
+@_jit_pointwise({len(rest) + 2}, cache=False)
+def _integrate(lo: float, hi: float, {names_with_types}) -> float:
+    _x = _np.empty(2, type(lo))
+    _x[0] = lo
+    _x[1] = hi
+    _r = {src}(_x, {names})
+    return _r[1] - _r[0]
+""",
+                d,
+            )
 
     for fname in (
         "pdf",
@@ -192,6 +242,7 @@ def _generate_wrappers(d: dict[str, Any]) -> None:
         "ppf",
         "density",
         "integral",
+        "integrate",
         "rvs",
     ):
         impl = f"_{fname}"
@@ -213,6 +264,13 @@ def _generate_wrappers(d: dict[str, Any]) -> None:
             "cdf": "Return cumulative probability.",
             "ppf": "Return quantile for given probability.",
             "rvs": "Return random samples from distribution.",
+            "integrate": (
+                "Return probability mass summed over an interval."
+                if "_pmf" in d
+                else "Return integral of density over an interval."
+                if "_density" in d
+                else "Return integral of probability density over an interval."
+            ),
         }.get(fname, None)
         if fname == "ppf":
             before_par = """\
@@ -221,6 +279,20 @@ x: ArrayLike
 """
         elif fname == "rvs":
             before_par = ""
+        elif fname == "integrate" and "_pmf" in d:
+            before_par = """\
+lo : float
+    Lower limit, excluded.
+hi : float
+    Upper limit, included.
+"""
+        elif fname == "integrate":
+            before_par = """\
+lo : float
+    Lower limit of the integral.
+hi : float
+    Upper limit of the integral.
+"""
         else:
             before_par = """\
 x: ArrayLike
@@ -243,6 +315,29 @@ def {fname}({args_with_types}):
 @_overload({fname}, inline="always")
 def _ol_{fname}({args_with_types}):
     return {impl}.__wrapped__
+"""
+        elif fname == "integrate":
+            lo, hi, *rest = parameters
+            # array parameters are converted like the first argument of _wrap
+            conv = "".join(
+                f"    {k} = _asarray({k})\n"
+                for k, v in parameters.items()
+                if v.annotation is np.ndarray
+            )
+            code = f"""
+def {fname}({args_with_types}):
+{conv}    return {impl}({args})
+
+@_overload({fname}, inline="always")
+def _ol_{fname}({args_with_types}):
+    dt = _type_check_scalar({args})
+    if dt is None:
+        return {impl}.__wrapped__
+
+    def impl({args_with_types}):
+        return {impl}(dt({lo}), dt({hi}), {", ".join(rest)})
+
+    return impl
 """
         else:
             first, *rest = parameters
@@ -269,6 +364,14 @@ def _ol_{fname}({args_with_types}):
     return {impl}.__wrapped__
 """
 
+        if fname == "integrate" and "_pmf" in d:
+            returns = (
+                "float\n    Probability of lo < k <= hi, which is cdf(hi) - cdf(lo)."
+            )
+        elif fname == "integrate":
+            returns = "float\n    Integral of the density from lo to hi."
+        else:
+            returns = "Array-like\n    Function evaluated at the x points."
         if doc_par is None:
             code += f"""
 {fname}.__doc__ = {impl}.__doc__
@@ -285,8 +388,7 @@ Parameters
 
 Returns
 -------
-Array-like
-    Function evaluated at the x points.
+{returns}
 \"\"\"
 """
         exec(code, d)

@@ -87,3 +87,22 @@ def test_rvs_njit():
         return ncx2.rvs(3.0, 2.0, 1.0, 2.0, 10, 1)
 
     assert_allclose(test(), ncx2.rvs(3, 2, 1, 2, 10, 1))
+
+
+def test_integrate():
+    par = 3, 2, 1, 2
+    for lo, hi in ((-3.0, 4.0), (0.5, 0.7), (4.0, -3.0), (-100.0, 100.0), (2.5, 6.0)):
+        got = ncx2.integrate(lo, hi, *par)
+        expected = np.diff(ncx2.cdf([lo, hi], *par))[0]
+        assert_allclose(got, expected, rtol=1e-9, atol=1e-15)
+    assert_allclose(ncx2.integrate(-np.inf, np.inf, *par), 1)
+
+
+@pytest.mark.filterwarnings("error")
+def test_integrate_njit():
+    @nb.njit
+    def test(lo, hi):
+        return ncx2.integrate(lo, hi, 3.0, 2.0, 1.0, 2.0)
+
+    expected = ncx2.integrate(2.0, 5.0, 3.0, 2.0, 1.0, 2.0)
+    assert_allclose(test(2.0, 5.0), expected)

@@ -85,3 +85,23 @@ def test_njit(fn, parallel):
     y = test(x)
 
     assert_allclose(y, fn(x, -1, 4, 0.5, 1, 2))
+
+
+def test_integrate():
+    par = -1, 4, 1.5, 1, 2
+    for lo, hi in ((-3.0, 4.0), (0.5, 0.7), (4.0, -3.0), (-100.0, 100.0), (2.5, 6.0)):
+        got = truncexponnorm.integrate(lo, hi, *par)
+        expected = np.diff(truncexponnorm.cdf([lo, hi], *par))[0]
+        assert_allclose(got, expected, rtol=1e-9, atol=1e-15)
+    assert_allclose(truncexponnorm.integrate(-1, 4, *par), 1)
+    assert_allclose(truncexponnorm.integrate(-10, 10, *par), 1)
+
+
+@pytest.mark.filterwarnings("error")
+def test_integrate_njit():
+    @nb.njit
+    def test(lo, hi):
+        return truncexponnorm.integrate(lo, hi, -1.0, 4.0, 1.5, 1.0, 2.0)
+
+    expected = truncexponnorm.integrate(-1.0, 1.5, -1.0, 4.0, 1.5, 1.0, 2.0)
+    assert_allclose(test(-1.0, 1.5), expected)

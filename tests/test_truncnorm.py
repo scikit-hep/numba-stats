@@ -1,6 +1,8 @@
+import numba as nb
 import numpy as np
 import pytest
 import scipy.stats as sc
+from numpy.testing import assert_allclose
 from scipy.integrate import quad
 
 from numba_stats import truncnorm
@@ -75,3 +77,23 @@ def test_rvs():
     x = truncnorm.rvs(xmin, xmax, mu, sigma, size=100_000, random_state=1)
     r = sc.kstest(x, lambda x: truncnorm.cdf(x, xmin, xmax, mu, sigma))
     assert r.pvalue > 0.01
+
+
+def test_integrate():
+    par = -1, 3, 1, 2
+    for lo, hi in ((-3.0, 4.0), (0.5, 0.7), (4.0, -3.0), (-100.0, 100.0), (2.5, 6.0)):
+        got = truncnorm.integrate(lo, hi, *par)
+        expected = np.diff(truncnorm.cdf([lo, hi], *par))[0]
+        assert_allclose(got, expected, rtol=1e-9, atol=1e-15)
+    assert_allclose(truncnorm.integrate(-1, 3, *par), 1)
+    assert_allclose(truncnorm.integrate(-10, 10, *par), 1)
+
+
+@pytest.mark.filterwarnings("error")
+def test_integrate_njit():
+    @nb.njit
+    def test(lo, hi):
+        return truncnorm.integrate(lo, hi, -1.0, 3.0, 1.0, 2.0)
+
+    expected = truncnorm.integrate(-1.0, 1.5, -1.0, 3.0, 1.0, 2.0)
+    assert_allclose(test(-1.0, 1.5), expected)
