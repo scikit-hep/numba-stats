@@ -14,11 +14,9 @@ import numpy as np
 from ._special import betainc as _betainc
 from ._special import xlog1py as _xlog1py
 from ._special import xlogy as _xlogy
-from ._util import _generate_wrappers, _jit, _prange, _seed
+from ._util import _generate_wrappers, _jit, _jit_pointwise, _prange, _seed
 
 _doc_par = """
-k : int
-    Number of successes.
 n : int
     Number of trials.
 p : float
@@ -70,6 +68,17 @@ def _cdf(k: np.ndarray, n: np.ndarray, p: float) -> np.ndarray:
 def _rvs(n: int, p: float, size: int, random_state: int | None) -> np.ndarray:
     _seed(random_state)
     return np.random.binomial(n, p, size=size)
+
+
+@_jit_pointwise(4, cache=False)
+def _integrate(lo: float, hi: float, n: float, p: float) -> float:
+    # n is an array in _cdf, so the generic implementation cannot be used
+    T = type(p)
+    k = np.empty(2, T)
+    k[0] = lo
+    k[1] = hi
+    r = _cdf(k, np.full(2, n), p)
+    return r[1] - r[0]  # type:ignore[no-any-return]
 
 
 _generate_wrappers(globals())

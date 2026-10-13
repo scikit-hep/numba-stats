@@ -69,3 +69,27 @@ def test_deprecation():
     with pytest.warns(FutureWarning):
         got = bernstein.scaled_cdf(1, [1, 2], 0, 1)
     assert_allclose(got, bernstein.integral(1, [1, 2], 0, 1))
+
+
+@pytest.mark.parametrize("beta", ([1.0], [1.0, 2.0], [1.0, 3.0, 2.0]))
+def test_integrate(beta):
+    xmin, xmax = -1.0, 1.0
+    for lo, hi in ((-1.0, 1.0), (-0.5, 0.3), (0.3, -0.5)):
+        got = bernstein.integrate(lo, hi, beta, xmin, xmax)
+        assert isinstance(got, float)
+        expected = np.diff(bernstein.integral([lo, hi], beta, xmin, xmax))[0]
+        assert_allclose(got, expected)
+        expected = quad(lambda x: bernstein.density(x, beta, xmin, xmax), lo, hi)[0]
+        assert_allclose(got, expected)
+
+
+@pytest.mark.filterwarnings("error")
+def test_integrate_njit():
+    beta = np.array([1.0, 3.0, 2.0])
+
+    @nb.njit
+    def test(lo, hi, beta):
+        return bernstein.integrate(lo, hi, beta, -1.0, 1.0)
+
+    expected = bernstein.integrate(-0.5, 0.3, beta, -1, 1)
+    assert_allclose(test(-0.5, 0.3, beta), expected)
