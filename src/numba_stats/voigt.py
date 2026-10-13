@@ -8,7 +8,7 @@ numerically unstable when the Cauchy width exceeds the normal width. Instead, wi
 z = (x - loc + i gamma) / (scale sqrt(2)), the cdf is computed for |z| < 6 by
 Gauss-Legendre quadrature of the pdf from loc to x, and for |z| >= 6 from the
 large-|z| expansion of the integrated Faddeeva function. The absolute error is below
-1e-14 for gamma / scale from 1e-3 to 1e2.
+1e-14 for gamma / scale from 1e-3 to 3e1.
 
 https://en.wikipedia.org/wiki/Voigt_profile
 
