@@ -39,7 +39,7 @@ repository = "https://github.com/scikit-hep/numba-stats"
 
 [dependency-groups]
 test = [
-    "pytest>=7",
+    "pytest>=7,<9.2",  # pytest-benchmark#321
     "pytest-cov>=5",
     "pytest-benchmark>=5.2.0",
     "pydocstyle>=6",
