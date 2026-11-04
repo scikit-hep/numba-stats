@@ -21,3 +21,23 @@ def test_all(module):
     r = subp.run([sys.executable, "-m", "pydocstyle", m.__file__], stdout=subp.PIPE)
     rc = int(r.returncode)
     assert rc == 0, r.stdout.decode("utf8")
+
+
+@pytest.mark.parametrize("module", all_modules)
+def test_docstrings(module):
+    m = importlib.import_module(f"numba_stats.{module}")
+    for name in (
+        "pdf",
+        "pmf",
+        "logpdf",
+        "logpmf",
+        "cdf",
+        "ppf",
+        "density",
+        "integral",
+        "integrate",
+        "rvs",
+    ):
+        fn = getattr(m, name, None)
+        if fn is not None:
+            assert fn.__doc__, f"{module}.{name} has no docstring"

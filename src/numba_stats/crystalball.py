@@ -19,8 +19,6 @@ from . import norm as _norm
 from ._util import _generate_wrappers, _jit, _jit_pointwise, _prange, _trans
 
 _doc_par = """
-x : Array-like
-    Random variate.
 beta : float
     Distance from the mode in units of standard deviations where the Crystal
     Ball turns from a gaussian into a power law.

@@ -2,6 +2,7 @@ import numba as nb
 import numpy as np
 import pytest
 import scipy.stats as sc
+from numpy.testing import assert_allclose
 
 from numba_stats import binom
 
@@ -42,3 +43,25 @@ def test_rvs(n, p):
         return np.random.binomial(n, p, 1000)
 
     np.testing.assert_equal(got, expected())
+
+
+@pytest.mark.parametrize("p", (0.0, 0.3, 1.0))
+def test_integrate(p):
+    # probability of lo < k <= hi
+    n = 20
+    for lo, hi in ((0, 5), (0, 20), (3, 3), (7, 2), (10, 20)):
+        got = binom.integrate(lo, hi, n, p)
+        expected = sc.binom.cdf(hi, n, p) - sc.binom.cdf(lo, n, p)
+        assert_allclose(got, expected, atol=1e-15)
+    k = np.array([2.0, 9.0])
+    got = binom.integrate(k[0], k[1], n, p)
+    assert_allclose(got, np.diff(binom.cdf(k, np.full_like(k, n), p))[0], atol=1e-15)
+
+
+@pytest.mark.filterwarnings("error")
+def test_integrate_njit():
+    @nb.njit
+    def test(lo, hi):
+        return binom.integrate(lo, hi, 20.0, 0.3)
+
+    assert_allclose(test(2.0, 9.0), binom.integrate(2, 9, 20.0, 0.3))
