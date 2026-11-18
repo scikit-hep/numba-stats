@@ -166,3 +166,23 @@ def test_rvs_njit():
         return novosibirsk.rvs(0.5, 1.0, 2.0, 10, 1)
 
     assert_allclose(test(), novosibirsk.rvs(0.5, 1, 2, 10, 1))
+
+
+@pytest.mark.parametrize("lambd", (-0.5, 0.0, 0.5))
+def test_integrate(lambd):
+    par = lambd, 1, 2
+    for lo, hi in ((-3.0, 4.0), (0.5, 0.7), (4.0, -3.0), (-100.0, 100.0), (2.5, 6.0)):
+        got = novosibirsk.integrate(lo, hi, *par)
+        expected = np.diff(novosibirsk.cdf([lo, hi], *par))[0]
+        assert_allclose(got, expected, rtol=1e-9, atol=1e-15)
+    assert_allclose(novosibirsk.integrate(-np.inf, np.inf, *par), 1)
+
+
+@pytest.mark.filterwarnings("error")
+def test_integrate_njit():
+    @nb.njit
+    def test(lo, hi):
+        return novosibirsk.integrate(lo, hi, 0.5, 1.0, 2.0)
+
+    expected = novosibirsk.integrate(-1.0, 1.5, 0.5, 1.0, 2.0)
+    assert_allclose(test(-1.0, 1.5), expected)

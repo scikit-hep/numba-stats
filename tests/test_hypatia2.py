@@ -257,3 +257,28 @@ def test_njit(fn, parallel):
     y = test(x)
 
     assert_allclose(y, fn(x, -1, 0, 0, 1, 2, 1, 2, 0, 1))
+
+
+@pytest.mark.parametrize("par", pars_integrable)
+def test_integrate(par):
+    loc = par[-2]
+    for lo, hi in ((loc - 7, loc + 7), (loc - 0.5, loc + 0.5), (loc + 2, loc + 30)):
+        got = hypatia2.integrate(lo, hi, *par)
+        expected = np.diff(hypatia2.integral([lo, hi], *par))[0]
+        assert_allclose(got, expected, rtol=1e-13)
+
+
+def test_integrate_bad_parameters():
+    with pytest.raises(ValueError):
+        hypatia2.integrate(-1.0, 1.0, -1.0, 1.0, 0.0, 1.0, 2.0, 1.0, 2.0, 0.0, 1.0)
+
+
+@pytest.mark.filterwarnings("error")
+def test_integrate_njit():
+    par = (-1.0, 0.0, 0.0, 1.0, 2.0, 1.0, 2.0, 0.0, 1.0)
+
+    @nb.njit
+    def test(lo, hi):
+        return hypatia2.integrate(lo, hi, -1.0, 0.0, 0.0, 1.0, 2.0, 1.0, 2.0, 0.0, 1.0)
+
+    assert_allclose(test(-3.0, 4.0), hypatia2.integrate(-3, 4, *par))

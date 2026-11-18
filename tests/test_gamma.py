@@ -79,3 +79,22 @@ def test_rvs_njit():
         return gamma.rvs(3.0, 1.0, 2.0, 10, 1)
 
     assert_allclose(test(), gamma.rvs(3, 1, 2, 10, 1))
+
+
+def test_integrate():
+    par = 2.5, 1, 2
+    for lo, hi in ((-3.0, 4.0), (0.5, 0.7), (4.0, -3.0), (-100.0, 100.0), (2.5, 6.0)):
+        got = gamma.integrate(lo, hi, *par)
+        expected = np.diff(gamma.cdf([lo, hi], *par))[0]
+        assert_allclose(got, expected, rtol=1e-9, atol=1e-15)
+    assert_allclose(gamma.integrate(-np.inf, np.inf, *par), 1)
+
+
+@pytest.mark.filterwarnings("error")
+def test_integrate_njit():
+    @nb.njit
+    def test(lo, hi):
+        return gamma.integrate(lo, hi, 2.5, 1.0, 2.0)
+
+    expected = gamma.integrate(2.0, 5.0, 2.5, 1.0, 2.0)
+    assert_allclose(test(2.0, 5.0), expected)
